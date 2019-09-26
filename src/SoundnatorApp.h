@@ -15,7 +15,7 @@
 #include "Alarm.hpp"
 
 class Generator;
-class Effects;
+class Effect;
 class Controller;
 class Global;
 class Output;
@@ -27,6 +27,10 @@ public:
 		registerEvent(InputGestureDirectObjects::I().updateObject, &TableObject::updateObject, this);
 	}
 
+	int getId() {
+		return this->id;
+	}
+
 	void updateTurnMultiplier(float angle) {
 		float derivative = angle - rawAngleLastValue;
 		if (derivative > derivativeThreshold) turnsMultiplier--;
@@ -35,7 +39,6 @@ public:
 	}
 
 	void addCursor(InputGestureDirectFingers::newCursorArgs & a) {
-		cout << "cursor input" << endl;
 	}
 
 	void updateObject(InputGestureDirectObjects::updateObjectArgs& a) {
@@ -59,19 +62,62 @@ public:
 		}
 	}
 
+	template <typename T>
+	bool isObject(TableObject* node) {
+		if (dynamic_cast<T*> (node)) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	bool isConnected(TableObject* obj) {
+		return obj == followingObj;
+	}
+
+	virtual bool canConnectTo(TableObject* obj) {
+		if (isObject<Output>(obj)) {
+			return true;
+		}
+		else if ((obj->precedingObj == nullptr) && isConnectableTo(obj)) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	virtual bool isConnectableTo(TableObject* obj) {
+		return false;
+	}
+
 	void connectTo(TableObject* node) {
-		connectToIfType<Effects>(node);
-		connectToIfType<Output>(node);
+		this->disconnectOut();
+		*this >> *node;
+		followingObj = node;
+		node->precedingObj = this;
 
 	}
 
+	virtual bool haveConnection() {
+		return (this->followingObj != nullptr);
+	}
+
 	void remove() {
-		if (precedingObj) {
+		if (precedingObj && followingObj) {
 			precedingObj->disconnectOut();
 			followingObj->disconnectIn();
 			*precedingObj >> *followingObj;
 			precedingObj->followingObj = followingObj;
+			followingObj->precedingObj = precedingObj;
+			precedingObj = nullptr;
+			followingObj = nullptr;
+		} else if (followingObj) {
+			followingObj->precedingObj = nullptr;
+			followingObj = nullptr;
 		}
+		setDirectObject(nullptr);
 		this->disconnectAll();
 	}
 
@@ -87,7 +133,22 @@ public:
 
 	virtual void updateAngleValue(float angle) {};
 
-	DirectObject* dobj;
+
+	void setDirectObject(DirectObject* dobj) {
+		this->dobj = dobj;
+	}
+
+	DirectObject* getDirectObject() {
+		return dobj;
+	}
+
+	float getDistanceTo(TableObject* obj) {
+		return this->dobj->getDistance(obj->dobj);
+	}
+
+	
+
+
 protected:
 
 private:
@@ -95,6 +156,7 @@ private:
 	float	rawAngleLastValue = 0.0f;
 	int		turnsMultiplier = 1;
 	const float derivativeThreshold = 1.0f;
+	DirectObject* dobj;
 	TableObject* followingObj;
 	TableObject* precedingObj = nullptr;
 };
@@ -125,6 +187,10 @@ public:
 		pitch_ctrl.set(pitch);
 	}
 
+	bool isConnectableTo(TableObject* obj) {
+		return isObject<Effect>(obj) || isObject<Output>(obj);
+	}
+
 
 private:
 	pdsp::PatchNode     input;
@@ -135,14 +201,14 @@ private:
 	pdsp::VAOscillator  osc;
 };
 
-class Effects : public TableObject {
+class Effect : public TableObject {
 
 public:
 
-	Effects(int id = -1) : TableObject(id) {
+	Effect(int id = -1) : TableObject(id) {
 		patch();
 	}
-	Effects(const Effects  & other) { patch(); } // you need this to use std::vector with your class, otherwise will not compile
+	Effect(const Effect  & other) { patch(); } // you need this to use std::vector with your class, otherwise will not compile
 
 
 	void patch() {
@@ -155,12 +221,15 @@ public:
 	}
 
 	void addCursor(InputGestureDirectFingers::newCursorArgs & a) {
-		cout << "cursor input" << endl;
 	}
 
 	void updateAngleValue(float angle) {
 		float cutoff = ofMap(angle, 0, 2.0f * M_2PI, 48.0f, 96.0f);
 		cutoff_ctrl.set(cutoff);
+	}
+
+	bool isConnectableTo(TableObject* obj) {
+		return isObject<Effect>(obj) || isObject<Output>(obj);
 	}
 
 private:
@@ -176,17 +245,6 @@ class Output : public TableObject {
 public:
 
 	Output(int id = -1) : TableObject(id) {
-		dobj = new DirectObject();
-		dobj->s_id = -1;
-		dobj->f_id = id;
-		dobj->setX(1.0f);
-		dobj->setY(0.5f);
-		dobj->angle = 0;
-		dobj->xspeed = 0;
-		dobj->yspeed = 0;
-		dobj->rspeed = 0;
-		dobj->maccel = 0;
-		dobj->raccel = 0;
 
 		patch();
 	}
@@ -211,8 +269,15 @@ public:
 
 	void draw() {
 		ofFill();
-		ofDrawCircle(dobj->getX(),dobj->getY(), 0.03f);
-		ofDrawLine(0.0f, 0.5f, 1.0f, 0.5f);
+		ofDrawCircle(getDirectObject()->getX(), getDirectObject()->getY(), 0.03f);
+	}
+
+	bool canConnectTo(TableObject* obj) {
+		return false;
+	}
+
+	bool haveConnection() {
+		return true;
 	}
 
 private:
