@@ -195,7 +195,6 @@ public:
 
 class Test2 : public CanDirectObjects<Graphic> {
 	// pdsp modules
-	pdsp::Engine            engine;
 	pdsp::VAOscillator      osc;
 	pdsp::LFO               lfo;
 	pdsp::ValueControl      pitch_ctrl;

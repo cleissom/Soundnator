@@ -20,11 +20,20 @@ class Controller;
 class Global;
 class Output;
 
+static pdsp::Engine engine;
+
 class TableObject : public pdsp::Patchable, public Graphic {
 public:
-	TableObject(int id = -1) : id(id), dobj(nullptr), followingObj(nullptr) {
+	TableObject(int id = -1) : id(id), dobj(nullptr), followingObj(nullptr), precedingObj(nullptr) {
 		registerEvent(InputGestureDirectFingers::I().enterCursor, &TableObject::addCursor, this);
 		registerEvent(InputGestureDirectObjects::I().updateObject, &TableObject::updateObject, this);
+
+		addModuleInput("signal", input);
+		addModuleInput("pitch", pitch);
+		addModuleInput("trig", trig);
+		addModuleOutput("signal", output);
+
+		scope.set(bufferLen);
 	}
 
 	int getId() {
@@ -52,15 +61,6 @@ public:
 		}
 	}
 
-
-	template <typename T>
-	void connectToIfType(TableObject* node) {
-		if (auto cast_node = dynamic_cast<T*> (node)) {
-			*this >> *cast_node;
-			followingObj = node;
-			node->precedingObj = this;
-		}
-	}
 
 	template <typename T>
 	bool isObject(TableObject* node) {
@@ -93,6 +93,9 @@ public:
 	}
 
 	void connectTo(TableObject* node) {
+		if (followingObj) {
+			followingObj->precedingObj = nullptr;
+		}
 		this->disconnectOut();
 		*this >> *node;
 		followingObj = node;
@@ -121,13 +124,43 @@ public:
 		this->disconnectAll();
 	}
 
-	void draw() {
-		ofSetColor(255);
-		ofSetLineWidth(10);
-		if (dobj && followingObj) {
-			ofDrawLine(dobj->getX(), dobj->getY(), followingObj->dobj->getX(), followingObj->dobj->getY());
+	void drawAudioWave() {
+		ofPushMatrix();
+
+		TableObject* nextObj = getFollowingObject();
+		float dist = this->getDistanceTo(getFollowingObject());
+		float yHalf = y / 2;
+		ofTranslate(this->getDirectObject()->getX(), this->getDirectObject()->getY());
+		ofRotateRad(this->getAngleTo(nextObj));
+		ofTranslate(0, -yHalf);
+		ofNoFill();
+		ofSetLineWidth(1);
+
+		int samples = dist / xMult;
+		int bufferIndex = 1;
+		float yMult = -yHalf;
+		vector<float> buffer = scope.getBuffer();
+
+		ofBeginShape();
+		for (int xx = 0; xx < samples; xx++) {
+			int index = xx * bufferIndex;
+			float value = buffer[index];
+			ofVertex(xx * xMult, yHalf + value * yMult);
 		}
+		ofEndShape(false);
+		ofPopMatrix();
 	}
+
+	void draw() {
+		TableObject* nextObj = getFollowingObject();
+		if (nextObj) {
+			drawAudioWave();
+		}
+
+		objectDraw();
+	}
+
+	virtual void objectDraw(){}
 
 
 
@@ -142,14 +175,28 @@ public:
 		return dobj;
 	}
 
+	TableObject* getFollowingObject() {
+		return followingObj;
+	}
+
 	float getDistanceTo(TableObject* obj) {
 		return this->dobj->getDistance(obj->dobj);
 	}
 
-	
+	float getAngleTo(TableObject* obj) {
+		return this->dobj->getAngle(obj->dobj);
+	}
 
+	
+	void setToScope(pdsp::Patchable& in) {
+		in >> scope >> engine.blackhole();
+	}
 
 protected:
+	pdsp::PatchNode     input;
+	pdsp::PatchNode     output;
+	pdsp::PatchNode     pitch;
+	pdsp::PatchNode     trig;
 
 private:
 	int		id;
@@ -158,7 +205,12 @@ private:
 	const float derivativeThreshold = 1.0f;
 	DirectObject* dobj;
 	TableObject* followingObj;
-	TableObject* precedingObj = nullptr;
+	TableObject* precedingObj;
+
+	pdsp::Scope			scope;
+	float xMult = 0.0003;
+	int bufferLen = 8192;
+	float y = 0.05;
 };
 
 class Generator : public TableObject {
@@ -171,13 +223,12 @@ public:
 	Generator(const Generator & other) { patch(); } // you need this to use std::vector with your class, otherwise will not compile
 
 	void patch() {
-		addModuleInput("signal", input);
-		addModuleInput("pitch", pitch);
-		addModuleInput("trig", trig);
-		addModuleOutput("signal", amp);
+
 
 		//patching
-		osc.out_saw() >> amp;
+		osc.out_saw() >> amp >> output;
+		this->setToScope(amp);
+		
 		pitch_ctrl >> osc.in_pitch();
 		amp.set(1.0f);
 	}	
@@ -192,13 +243,17 @@ public:
 	}
 
 
+
+	void objectDraw() {
+		
+	}
+
 private:
-	pdsp::PatchNode     input;
-	pdsp::PatchNode     pitch;
-	pdsp::PatchNode     trig;
+
 	pdsp::ValueControl  pitch_ctrl;
 	pdsp::Amp           amp;
 	pdsp::VAOscillator  osc;
+	
 };
 
 class Effect : public TableObject {
@@ -212,10 +267,9 @@ public:
 
 
 	void patch() {
-		addModuleInput("input", input);
-		addModuleOutput("output", amp);
 
-		input >> filter >> amp;
+		input >> filter >> amp >> output;
+		this->setToScope(amp);
 		cutoff_ctrl >> filter.in_cutoff();
 		amp.set(1.0f);
 	}
@@ -232,8 +286,8 @@ public:
 		return isObject<Effect>(obj) || isObject<Output>(obj);
 	}
 
+
 private:
-	pdsp::PatchNode     input;
 	pdsp::Amp           amp;
 	pdsp::ValueControl	cutoff_ctrl;
 	pdsp::VAFilter      filter; // 24dB multimode filter
@@ -252,7 +306,6 @@ public:
 
 
 	void patch() {
-		addModuleInput("input", input);
 
 		//------------SETUPS AND START AUDIO-------------
 #ifdef PC
@@ -281,9 +334,6 @@ public:
 	}
 
 private:
-	pdsp::Engine        engine;
-	pdsp::PatchNode     input;
-
 };
 
 class SoundnatorApp : public ofBaseApp{
@@ -304,7 +354,6 @@ class SoundnatorApp : public ofBaseApp{
 		void windowResized(int w, int h);
 
 		// pdsp modules
-		pdsp::Engine            engine;
 };
 
 #endif
