@@ -24,6 +24,7 @@ public:
 		TableObjects.insert(std::make_pair(1, new Generator(1)));
 		TableObjects.insert(std::make_pair(2, new Effect(2)));
 		TableObjects.insert(std::make_pair(3, new Effect(3)));
+		TableObjects.insert(std::make_pair(4, new Controller(4)));
 		TableObjects.insert(std::make_pair(OUTPUT, new Output(OUTPUT)));
 
 		registerEvent(InputGestureDirectFingers::I().enterCursor, &SoundDispatcher::addCursor, this);
@@ -129,13 +130,13 @@ public:
 			cout << "have first. ";
 			if (shorter.second) {
 				cout << "have second. ";
-				shorter.second->isConnected(shorter.first) ? (cout << "second is connected. ") : (cout << "second is not connected. ");
+				shorter.second->isConnectedTo(shorter.first) ? (cout << "second is connected. ") : (cout << "second is not connected. ");
 
 				object->canConnectTo(shorter.first) ? (cout << "can connect. ") : (cout << "can not connect. ");
 
 				if (object->canConnectTo(shorter.first)) {
 
-					if (shorter.second->isConnected(shorter.first)) {
+					if (shorter.second->isConnectedTo(shorter.first)) {
 						auto distSecondToFirst = shorter.second->getDistanceTo(shorter.first);
 						auto distObjToFirst = object->getDistanceTo(shorter.first);
 						auto distObjToSecond = object->getDistanceTo(shorter.second);

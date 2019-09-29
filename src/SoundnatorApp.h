@@ -22,9 +22,11 @@ class Output;
 
 static pdsp::Engine engine;
 
+typedef enum {AUDIO, CONTROL} connectionType_t;
+
 class TableObject : public pdsp::Patchable, public Graphic {
 public:
-	TableObject(int id = -1) : id(id), dobj(nullptr), followingObj(nullptr), precedingObj(nullptr) {
+	TableObject(int id = -1, connectionType_t connection = AUDIO) : id(id), dobj(nullptr), connection(connection), followingObj(nullptr), precedingAudioObj(nullptr), precedingControlObj(nullptr) {
 		registerEvent(InputGestureDirectFingers::I().enterCursor, &TableObject::addCursor, this);
 		registerEvent(InputGestureDirectObjects::I().updateObject, &TableObject::updateObject, this);
 
@@ -62,6 +64,9 @@ public:
 	}
 
 
+
+
+
 	template <typename T>
 	bool isObject(TableObject* node) {
 		if (dynamic_cast<T*> (node)) {
@@ -72,15 +77,18 @@ public:
 		}
 	}
 
-	bool isConnected(TableObject* obj) {
+
+
+
+	bool isConnectedTo(TableObject* obj) {
 		return obj == followingObj;
 	}
 
 	virtual bool canConnectTo(TableObject* obj) {
-		if (isObject<Output>(obj)) {
+		if (isObject<Output>(obj) && objectIsConnectableToOutput()) {
 			return true;
 		}
-		else if ((obj->precedingObj == nullptr) && isConnectableTo(obj)) {
+		else if ((obj->precedingAudioObj == nullptr) && objectIsConnectableTo(obj)) {
 			return true;
 		}
 		else {
@@ -88,36 +96,40 @@ public:
 		}
 	}
 
-	virtual bool isConnectableTo(TableObject* obj) {
-		return false;
-	}
+	virtual bool objectIsConnectableTo(TableObject* obj) = 0;
+
+	virtual bool objectIsConnectableToOutput() = 0;
 
 	void connectTo(TableObject* node) {
 		if (followingObj) {
-			followingObj->precedingObj = nullptr;
+			followingObj->precedingAudioObj = nullptr;
 		}
 		this->disconnectOut();
 		*this >> *node;
 		followingObj = node;
-		node->precedingObj = this;
+		node->precedingAudioObj = this;
 
 	}
+
+
+
+
 
 	virtual bool haveConnection() {
 		return (this->followingObj != nullptr);
 	}
 
 	void remove() {
-		if (precedingObj && followingObj) {
-			precedingObj->disconnectOut();
+		if (precedingAudioObj && followingObj) {
+			precedingAudioObj->disconnectOut();
 			followingObj->disconnectIn();
-			*precedingObj >> *followingObj;
-			precedingObj->followingObj = followingObj;
-			followingObj->precedingObj = precedingObj;
-			precedingObj = nullptr;
+			*precedingAudioObj >> *followingObj;
+			precedingAudioObj->followingObj = followingObj;
+			followingObj->precedingAudioObj = precedingAudioObj;
+			precedingAudioObj = nullptr;
 			followingObj = nullptr;
 		} else if (followingObj) {
-			followingObj->precedingObj = nullptr;
+			followingObj->precedingAudioObj = nullptr;
 			followingObj = nullptr;
 		}
 		setDirectObject(nullptr);
@@ -203,9 +215,11 @@ private:
 	float	rawAngleLastValue = 0.0f;
 	int		turnsMultiplier = 1;
 	const float derivativeThreshold = 1.0f;
+	connectionType_t connection;
 	DirectObject* dobj;
 	TableObject* followingObj;
-	TableObject* precedingObj;
+	TableObject* precedingAudioObj;
+	TableObject* precedingControlObj;
 
 	pdsp::Scope			scope;
 	float xMult = 0.0003;
@@ -217,7 +231,7 @@ class Generator : public TableObject {
 
 public:
 
-	Generator(int id = -1) : TableObject(id) {
+	Generator(int id = -1, connectionType_t connection = AUDIO) : TableObject(id, connection) {
 		patch();
 	}
 	Generator(const Generator & other) { patch(); } // you need this to use std::vector with your class, otherwise will not compile
@@ -238,8 +252,12 @@ public:
 		pitch_ctrl.set(pitch);
 	}
 
-	bool isConnectableTo(TableObject* obj) {
-		return isObject<Effect>(obj) || isObject<Output>(obj);
+	bool objectIsConnectableTo(TableObject* obj) {
+		return isObject<Effect>(obj);
+	}
+
+	bool objectIsConnectableToOutput() {
+		return true;
 	}
 
 
@@ -260,7 +278,7 @@ class Effect : public TableObject {
 
 public:
 
-	Effect(int id = -1) : TableObject(id) {
+	Effect(int id = -1, connectionType_t connection = AUDIO) : TableObject(id, connection) {
 		patch();
 	}
 	Effect(const Effect  & other) { patch(); } // you need this to use std::vector with your class, otherwise will not compile
@@ -282,8 +300,12 @@ public:
 		cutoff_ctrl.set(cutoff);
 	}
 
-	bool isConnectableTo(TableObject* obj) {
-		return isObject<Effect>(obj) || isObject<Output>(obj);
+	bool objectIsConnectableTo(TableObject* obj) {
+		return isObject<Effect>(obj);
+	}
+
+	bool objectIsConnectableToOutput() {
+		return true;
 	}
 
 
@@ -293,6 +315,53 @@ private:
 	pdsp::VAFilter      filter; // 24dB multimode filter
 
 };
+
+
+class Controller : public TableObject {
+
+public:
+
+	Controller(int id = -1, connectionType_t connection = CONTROL) : TableObject(id, CONTROL) {
+		patch();
+	}
+	Controller(const Controller  & other) { patch(); } // you need this to use std::vector with your class, otherwise will not compile
+
+
+	void patch() {
+
+		input >> filter >> amp >> output;
+		this->setToScope(amp);
+		cutoff_ctrl >> filter.in_cutoff();
+		amp.set(1.0f);
+	}
+
+	void addCursor(InputGestureDirectFingers::newCursorArgs & a) {
+	}
+
+	void updateAngleValue(float angle) {
+		float cutoff = ofMap(angle, 0, 2.0f * M_2PI, 48.0f, 96.0f);
+		cutoff_ctrl.set(cutoff);
+	}
+
+	bool objectIsConnectableTo(TableObject* obj) {
+		return isObject<Generator>(obj) || isObject<Effect>(obj);
+	}
+
+	bool objectIsConnectableToOutput() {
+		return false;
+	}
+
+
+private:
+	pdsp::Amp           amp;
+	pdsp::ValueControl	cutoff_ctrl;
+	pdsp::VAFilter      filter; // 24dB multimode filter
+
+};
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 class Output : public TableObject {
 
@@ -333,8 +402,22 @@ public:
 		return true;
 	}
 
+	bool objectIsConnectableTo(TableObject* obj) {
+		return false;
+	}
+
+	bool objectIsConnectableToOutput() {
+		return false;
+	}
+
 private:
 };
+
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 class SoundnatorApp : public ofBaseApp{
 
@@ -352,8 +435,6 @@ class SoundnatorApp : public ofBaseApp{
 		void mousePressed(int x, int y, int button);
 		void mouseReleased(int x, int y, int button);
 		void windowResized(int w, int h);
-
-		// pdsp modules
 };
 
 #endif
