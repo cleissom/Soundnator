@@ -31,9 +31,11 @@ public:
 		registerEvent(InputGestureDirectObjects::I().updateObject, &TableObject::updateObject, this);
 
 		addModuleInput("signal", input);
-		addModuleInput("pitch", pitch);
-		addModuleInput("trig", trig);
+		addModuleInput("pitch", pitch_in);
+		addModuleInput("trig", trig_in);
 		addModuleOutput("signal", output);
+		addModuleOutput("pitch", pitch_out);
+		addModuleOutput("trig", trig_out);
 
 		scope.set(bufferLen);
 	}
@@ -78,6 +80,41 @@ public:
 	}
 
 
+	TableObject** getPrecedingObj(TableObject* obj) {
+		return getPrecedingObj(obj, this->connection);
+	}
+
+	TableObject** getPrecedingObj(TableObject* obj, connectionType_t connection) {
+		switch (connection)
+		{
+		case AUDIO:
+			return &obj->precedingAudioObj;
+			break;
+		case CONTROL:
+			return &obj->precedingControlObj;
+			break;
+		default:
+			break;
+		}
+		return nullptr;
+	}
+
+	void makeConnectionTo(TableObject* obj) {
+		switch (connection)
+		{
+		case AUDIO:
+			*this >> *obj;
+			break;
+		case CONTROL:
+			this->out("pitch") >> obj->in("pitch");
+			this->out("trig") >> obj->in("trig");
+			break;
+		default:
+			break;
+		}
+	}
+
+	
 
 
 	bool isConnectedTo(TableObject* obj) {
@@ -85,14 +122,22 @@ public:
 	}
 
 	virtual bool canConnectTo(TableObject* obj) {
-		if (isObject<Output>(obj) && objectIsConnectableToOutput()) {
-			return true;
-		}
-		else if ((obj->precedingAudioObj == nullptr) && objectIsConnectableTo(obj)) {
-			return true;
+		if (isObject<Output>(this)) {
+			return false;
 		}
 		else {
-			return false;
+
+			TableObject** objPrecedingObj = getPrecedingObj(obj);
+
+			if (isObject<Output>(obj) && objectIsConnectableToOutput()) {
+				return true;
+			}
+			else if ((*objPrecedingObj == nullptr) && objectIsConnectableTo(obj)) {
+				return true;
+			}
+			else {
+				return false;
+			}
 		}
 	}
 
@@ -100,15 +145,22 @@ public:
 
 	virtual bool objectIsConnectableToOutput() = 0;
 
-	void connectTo(TableObject* node) {
+
+
+
+
+	void connectTo(TableObject* obj) {
+
 		if (followingObj) {
-			followingObj->precedingAudioObj = nullptr;
+			*getPrecedingObj(followingObj) = nullptr;
 		}
 		this->disconnectOut();
-		*this >> *node;
-		followingObj = node;
-		node->precedingAudioObj = this;
 
+		makeConnectionTo(obj);
+
+		followingObj = obj;
+
+		*getPrecedingObj(obj) = this;
 	}
 
 
@@ -119,22 +171,56 @@ public:
 		return (this->followingObj != nullptr);
 	}
 
+
+
+	void makeDisconnectionTo(TableObject* obj, connectionType_t connection) {
+		TableObject** precedingObj = getPrecedingObj(this,connection);
+		(*precedingObj)->disconnectOut();
+		followingObj->disconnectIn();
+
+		**precedingObj >> *followingObj;
+		(*precedingObj)->followingObj = followingObj;
+		*getPrecedingObj(followingObj,connection) = *precedingObj;
+
+		precedingObj = nullptr;
+		followingObj = nullptr;
+	}
+
 	void remove() {
-		if (precedingAudioObj && followingObj) {
+
+		if (precedingAudioObj && precedingControlObj && followingObj) {
+			precedingAudioObj->disconnectOut();
+			precedingControlObj->disconnectOut();
+
+			precedingAudioObj->followingObj = nullptr;
+			precedingControlObj->followingObj = nullptr;
+
+			precedingAudioObj = nullptr;
+			precedingControlObj = nullptr;
+		} else if (precedingAudioObj && followingObj) {
 			precedingAudioObj->disconnectOut();
 			followingObj->disconnectIn();
 			*precedingAudioObj >> *followingObj;
 			precedingAudioObj->followingObj = followingObj;
 			followingObj->precedingAudioObj = precedingAudioObj;
 			precedingAudioObj = nullptr;
-			followingObj = nullptr;
-		} else if (followingObj) {
-			followingObj->precedingAudioObj = nullptr;
+		} else if (precedingControlObj && followingObj) {
+			precedingControlObj->disconnectOut();
+			followingObj->disconnectIn();
+			precedingControlObj->followingObj = nullptr;
+			precedingControlObj = nullptr;
+		}
+		if (followingObj) {
+			*getPrecedingObj(followingObj) = nullptr;
 			followingObj = nullptr;
 		}
 		setDirectObject(nullptr);
 		this->disconnectAll();
 	}
+
+
+
+
 
 	void drawAudioWave() {
 		ofPushMatrix();
@@ -207,8 +293,10 @@ public:
 protected:
 	pdsp::PatchNode     input;
 	pdsp::PatchNode     output;
-	pdsp::PatchNode     pitch;
-	pdsp::PatchNode     trig;
+	pdsp::PatchNode     pitch_in;
+	pdsp::PatchNode     pitch_out;
+	pdsp::PatchNode     trig_in;
+	pdsp::PatchNode     trig_out;
 
 private:
 	int		id;
@@ -392,10 +480,6 @@ public:
 	void draw() {
 		ofFill();
 		ofDrawCircle(getDirectObject()->getX(), getDirectObject()->getY(), 0.03f);
-	}
-
-	bool canConnectTo(TableObject* obj) {
-		return false;
 	}
 
 	bool haveConnection() {
