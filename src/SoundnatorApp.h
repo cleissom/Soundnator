@@ -329,8 +329,9 @@ public:
 
 		//patching
 		osc.out_saw() >> amp >> output;
+		env >> amp.in_mod();
 		this->setToScope(amp);
-		
+		trig_in >> env;
 		pitch_ctrl >> osc.in_pitch();
 		amp.set(1.0f);
 	}	
@@ -359,6 +360,7 @@ private:
 	pdsp::ValueControl  pitch_ctrl;
 	pdsp::Amp           amp;
 	pdsp::VAOscillator  osc;
+	pdsp::ADSR			env;
 	
 };
 
@@ -416,10 +418,9 @@ public:
 
 
 	void patch() {
-
-		input >> filter >> amp >> output;
+		pitch_ctrl >> osc;
+		osc.out_pulse() >> amp >> trig_out;
 		this->setToScope(amp);
-		cutoff_ctrl >> filter.in_cutoff();
 		amp.set(1.0f);
 	}
 
@@ -427,8 +428,8 @@ public:
 	}
 
 	void updateAngleValue(float angle) {
-		float cutoff = ofMap(angle, 0, 2.0f * M_2PI, 48.0f, 96.0f);
-		cutoff_ctrl.set(cutoff);
+		float pitch = ofMap(angle, 0, 5.0f * M_2PI, 0.0f, 36.0f);
+		pitch_ctrl.set(pitch);
 	}
 
 	bool objectIsConnectableTo(TableObject* obj) {
@@ -442,7 +443,8 @@ public:
 
 private:
 	pdsp::Amp           amp;
-	pdsp::ValueControl	cutoff_ctrl;
+	pdsp::VAOscillator  osc;
+	pdsp::ValueControl	pitch_ctrl;
 	pdsp::VAFilter      filter; // 24dB multimode filter
 
 };
