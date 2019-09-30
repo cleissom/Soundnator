@@ -12,6 +12,7 @@
 #include "FigureGraphic.hpp"
 #include "InputGestureDirectFingers.hpp"
 #include "InputGestureDirectObjects.hpp"
+#include "InputGestureTap.hpp"
 #include "Alarm.hpp"
 
 class Generator;
@@ -22,12 +23,15 @@ class Output;
 
 static pdsp::Engine engine;
 
-typedef enum {AUDIO, CONTROL} connectionType_t;
+typedef enum { AUDIO, CONTROL } connectionType_t;
 
 class TableObject : public pdsp::Patchable, public Graphic {
 public:
 	TableObject(int id = -1, connectionType_t connection = AUDIO) : id(id), dobj(nullptr), connection(connection), followingObj(nullptr), precedingAudioObj(nullptr), precedingControlObj(nullptr) {
-		registerEvent(InputGestureDirectFingers::I().enterCursor, &TableObject::addCursor, this);
+		registerMyEvent(InputGestureDirectFingers::I().newCursor, &TableObject::addCursor, this);
+
+		//registerMyEvent(InputGestureTap::I().Tap, &TableObject::Tap, this);
+
 		registerEvent(InputGestureDirectObjects::I().updateObject, &TableObject::updateObject, this);
 
 		addModuleInput("signal", input);
@@ -38,6 +42,16 @@ public:
 		addModuleOutput("trig", trig_out);
 
 		scope.set(bufferLen);
+	}
+
+	bool Collide(ofPoint const & point)
+	{
+		if (getDirectObject()) {
+			float dist = point.distance(ofVec3f(getDirectObject()->getX(), getDirectObject()->getY()));
+			return (dist <= 0.2);
+		}
+		else
+			return false;
 	}
 
 	int getId() {
@@ -51,7 +65,11 @@ public:
 		rawAngleLastValue = angle;
 	}
 
-	void addCursor(InputGestureDirectFingers::newCursorArgs & a) {
+	virtual void addCursor(InputGestureDirectFingers::newCursorArgs & a) {
+	}
+
+	virtual void Tap(InputGestureTap::TapArgs & a) {
+
 	}
 
 	void updateObject(InputGestureDirectObjects::updateObjectArgs& a) {
@@ -114,7 +132,7 @@ public:
 		}
 	}
 
-	
+
 
 
 	bool isConnectedTo(TableObject* obj) {
@@ -174,13 +192,13 @@ public:
 
 
 	void makeDisconnectionTo(TableObject* obj, connectionType_t connection) {
-		TableObject** precedingObj = getPrecedingObj(this,connection);
+		TableObject** precedingObj = getPrecedingObj(this, connection);
 		(*precedingObj)->disconnectOut();
 		followingObj->disconnectIn();
 
 		**precedingObj >> *followingObj;
 		(*precedingObj)->followingObj = followingObj;
-		*getPrecedingObj(followingObj,connection) = *precedingObj;
+		*getPrecedingObj(followingObj, connection) = *precedingObj;
 
 		precedingObj = nullptr;
 		followingObj = nullptr;
@@ -197,14 +215,16 @@ public:
 
 			precedingAudioObj = nullptr;
 			precedingControlObj = nullptr;
-		} else if (precedingAudioObj && followingObj) {
+		}
+		else if (precedingAudioObj && followingObj) {
 			precedingAudioObj->disconnectOut();
 			followingObj->disconnectIn();
 			*precedingAudioObj >> *followingObj;
 			precedingAudioObj->followingObj = followingObj;
 			followingObj->precedingAudioObj = precedingAudioObj;
 			precedingAudioObj = nullptr;
-		} else if (precedingControlObj && followingObj) {
+		}
+		else if (precedingControlObj && followingObj) {
 			precedingControlObj->disconnectOut();
 			followingObj->disconnectIn();
 			precedingControlObj->followingObj = nullptr;
@@ -258,7 +278,7 @@ public:
 		objectDraw();
 	}
 
-	virtual void objectDraw(){}
+	virtual void objectDraw() {}
 
 
 
@@ -285,7 +305,7 @@ public:
 		return this->dobj->getAngle(obj->dobj);
 	}
 
-	
+
 	void setToScope(pdsp::Patchable& in) {
 		in >> scope >> engine.blackhole();
 	}
@@ -302,7 +322,7 @@ private:
 	int		id;
 	float	rawAngleLastValue = 0.0f;
 	int		turnsMultiplier = 1;
-	const float derivativeThreshold = 1.0f;
+	const float derivativeThreshold = 2.0f;
 	connectionType_t connection;
 	DirectObject* dobj;
 	TableObject* followingObj;
@@ -321,20 +341,55 @@ public:
 
 	Generator(int id = -1, connectionType_t connection = AUDIO) : TableObject(id, connection) {
 		patch();
+
+		polygon.AddVertex(ofPoint(-0.025f, -0.05f));
+		polygon.AddVertex(ofPoint(-0.025f, -0.075f));
+		polygon.AddVertex(ofPoint(0.025f, -0.075f));
+		polygon.AddVertex(ofPoint(0.025f, -0.05f));
+		fg = new FigureGraphic(&polygon);
+		fg->registerMyEvent(InputGestureDirectFingers::Instance().enterCursor, &Generator::enter, this);
+
+		fg->color.r = ofRandom(0, 255);
+		fg->color.g = ofRandom(0, 255);
+		fg->color.b = ofRandom(0, 255);
+		fg->color.a = 100;
+		fg->transformation.setTranslation(0.5, 0.5, 0);
+		fg->isHidden(true);
+
+		fg->registerMyEvent(InputGestureTap::I().Tap, &Generator::Tap, this);
+
 	}
 	Generator(const Generator & other) { patch(); } // you need this to use std::vector with your class, otherwise will not compile
 
+	void enter(InputGestureDirectFingers::enterCursorArgs& a) {
+		cout << "enter figure" << endl;
+
+	}
+
+	void update() {
+		if (getDirectObject()) {
+			fg->isHidden(false);
+			fg->transformation.setTranslation(this->getDirectObject()->getX(), this->getDirectObject()->getY(), 0);
+		}
+		else {
+			fg->isHidden(true);
+		}
+	}
+
 	void patch() {
 
-
 		//patching
-		osc.out_saw() >> amp >> output;
+		osc.out_triangle() >> amp >> output;
 		env >> amp.in_mod();
-		this->setToScope(amp);
 		trig_in >> env;
 		pitch_ctrl >> osc.in_pitch();
+		pitch_ctrl.enableSmoothing(50.0f);
 		amp.set(1.0f);
-	}	
+		trig_in.set(1.0f);
+		this->setToScope(amp);
+
+
+	}
 
 	void updateAngleValue(float angle) {
 		float pitch = ofMap(angle, 0, 5.0f * M_2PI, 36.0f, 96.0f);
@@ -349,19 +404,34 @@ public:
 		return true;
 	}
 
-
+	void Tap(InputGestureTap::TapArgs & a) {
+		cout << "TAP" << endl;
+		switch (choose % 2) {
+		case 0:
+			osc.disconnectOut();
+			osc.out_saw() >> amp;
+			break;
+		case 1:
+			osc.disconnectOut();
+			osc.out_triangle() >> amp;
+			break;
+		}
+		choose++;
+	}
 
 	void objectDraw() {
-		
+
 	}
 
 private:
-
+	int choose = 0;
+	Figures::Polygon polygon;
+	FigureGraphic* fg;
 	pdsp::ValueControl  pitch_ctrl;
 	pdsp::Amp           amp;
 	pdsp::VAOscillator  osc;
 	pdsp::ADSR			env;
-	
+
 };
 
 class Effect : public TableObject {
@@ -505,22 +575,22 @@ private:
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class SoundnatorApp : public ofBaseApp{
+class SoundnatorApp : public ofBaseApp {
 
-	public:
+public:
 
-        TableApp tableapp;
-		void setup();
-		void update();
-		void draw();
+	TableApp tableapp;
+	void setup();
+	void update();
+	void draw();
 
-		void keyPressed  (int key);
-		void keyReleased(int key);
-		void mouseMoved(int x, int y );
-		void mouseDragged(int x, int y, int button);
-		void mousePressed(int x, int y, int button);
-		void mouseReleased(int x, int y, int button);
-		void windowResized(int w, int h);
+	void keyPressed(int key);
+	void keyReleased(int key);
+	void mouseMoved(int x, int y);
+	void mouseDragged(int x, int y, int button);
+	void mousePressed(int x, int y, int button);
+	void mouseReleased(int x, int y, int button);
+	void windowResized(int w, int h);
 };
 
 #endif

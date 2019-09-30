@@ -607,6 +607,7 @@ C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\libs\audiofft</Additi
     <ClCompile Include="..\..\ofxPDSP\src\sequencer\SequencerSection.cpp" />
     <ClCompile Include="..\..\ofxPDSP\src\sequencer\stockBehaviors.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\SoundDispatcher.cpp" />
     <ClCompile Include="src\SoundnatorApp.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -1663,6 +1664,7 @@ C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\libs\audiofft</Additi
     <ClInclude Include="..\..\ofxPDSP\src\sequencer\SequencerSection.h" />
     <ClInclude Include="..\..\ofxPDSP\src\sequencer\stockBehaviors.h" />
     <ClInclude Include="..\..\ofxPDSP\src\types.h" />
+    <ClInclude Include="src\SoundDispatcher.h" />
     <ClInclude Include="src\SoundnatorApp.h" />
   </ItemGroup>
   <ItemGroup>
