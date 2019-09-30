@@ -637,6 +637,9 @@
     <ClCompile Include="src\SoundnatorApp.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\SoundDispatcher.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="src">
@@ -4140,6 +4143,9 @@
       <Filter>addons\ofxPDSP\libs\audiofft</Filter>
     </ClInclude>
     <ClInclude Include="src\SoundnatorApp.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SoundDispatcher.h">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>
