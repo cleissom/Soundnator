@@ -28,8 +28,7 @@ typedef enum { AUDIO, CONTROL } connectionType_t;
 class TableObject : public pdsp::Patchable, public Graphic {
 public:
 	TableObject(int id = -1, connectionType_t connection = AUDIO) : id(id), dobj(nullptr), connection(connection), followingObj(nullptr), precedingAudioObj(nullptr), precedingControlObj(nullptr) {
-		registerMyEvent(InputGestureDirectFingers::I().newCursor, &TableObject::addCursor, this);
-
+		//registerMyEvent(InputGestureDirectFingers::I().newCursor, &TableObject::addCursor, this);
 		//registerMyEvent(InputGestureTap::I().Tap, &TableObject::Tap, this);
 
 		registerEvent(InputGestureDirectObjects::I().updateObject, &TableObject::updateObject, this);
@@ -42,16 +41,6 @@ public:
 		addModuleOutput("trig", trig_out);
 
 		scope.set(bufferLen);
-	}
-
-	bool Collide(ofPoint const & point)
-	{
-		if (getDirectObject()) {
-			float dist = point.distance(ofVec3f(getDirectObject()->getX(), getDirectObject()->getY()));
-			return (dist <= 0.2);
-		}
-		else
-			return false;
 	}
 
 	int getId() {
@@ -132,6 +121,35 @@ public:
 		}
 	}
 
+	void makeDisconnectionOut(TableObject* obj) {
+		switch (connection)
+		{
+		case AUDIO:
+			obj->out("signal").disconnectOut();
+			break;
+		case CONTROL:
+			obj->out("pitch").disconnectOut();
+			obj->out("trig").disconnectOut();
+			break;
+		default:
+			break;
+		}
+	}
+
+	void makeDisconnectionIn(TableObject* obj) {
+		switch (connection)
+		{
+		case AUDIO:
+			obj->out("signal").disconnectIn();
+			break;
+		case CONTROL:
+			obj->out("pitch").disconnectIn();
+			obj->out("trig").disconnectIn();
+			break;
+		default:
+			break;
+		}
+	}
 
 
 
@@ -172,7 +190,7 @@ public:
 		if (followingObj) {
 			*getPrecedingObj(followingObj) = nullptr;
 		}
-		this->disconnectOut();
+		makeDisconnectionOut(this);
 
 		makeConnectionTo(obj);
 
@@ -189,26 +207,11 @@ public:
 		return (this->followingObj != nullptr);
 	}
 
-
-
-	void makeDisconnectionTo(TableObject* obj, connectionType_t connection) {
-		TableObject** precedingObj = getPrecedingObj(this, connection);
-		(*precedingObj)->disconnectOut();
-		followingObj->disconnectIn();
-
-		**precedingObj >> *followingObj;
-		(*precedingObj)->followingObj = followingObj;
-		*getPrecedingObj(followingObj, connection) = *precedingObj;
-
-		precedingObj = nullptr;
-		followingObj = nullptr;
-	}
-
 	void remove() {
 
 		if (precedingAudioObj && precedingControlObj && followingObj) {
-			precedingAudioObj->disconnectOut();
-			precedingControlObj->disconnectOut();
+			makeDisconnectionOut(precedingAudioObj);
+			makeDisconnectionOut(precedingControlObj);
 
 			precedingAudioObj->followingObj = nullptr;
 			precedingControlObj->followingObj = nullptr;
@@ -217,16 +220,16 @@ public:
 			precedingControlObj = nullptr;
 		}
 		else if (precedingAudioObj && followingObj) {
-			precedingAudioObj->disconnectOut();
-			followingObj->disconnectIn();
+			makeDisconnectionOut(precedingAudioObj);
+			makeDisconnectionIn(followingObj);
 			*precedingAudioObj >> *followingObj;
 			precedingAudioObj->followingObj = followingObj;
 			followingObj->precedingAudioObj = precedingAudioObj;
 			precedingAudioObj = nullptr;
 		}
 		else if (precedingControlObj && followingObj) {
-			precedingControlObj->disconnectOut();
-			followingObj->disconnectIn();
+			makeDisconnectionOut(precedingControlObj);
+			makeDisconnectionIn(followingObj);
 			precedingControlObj->followingObj = nullptr;
 			precedingControlObj = nullptr;
 		}
@@ -379,14 +382,14 @@ public:
 	void patch() {
 
 		//patching
-		osc.out_triangle() >> amp >> output;
-		env >> amp.in_mod();
+		osc.out_triangle() >> amplifier >> output;
+		env >> amplifier.in_mod();
 		trig_in >> env;
 		pitch_ctrl >> osc.in_pitch();
 		pitch_ctrl.enableSmoothing(50.0f);
-		amp.set(1.0f);
+		amplifier.set(1.0f);
 		trig_in.set(1.0f);
-		this->setToScope(amp);
+		this->setToScope(amplifier);
 
 
 	}
@@ -407,13 +410,13 @@ public:
 	void Tap(InputGestureTap::TapArgs & a) {
 		cout << "TAP" << endl;
 		switch (choose % 2) {
-		case 0:
-			osc.disconnectOut();
-			osc.out_saw() >> amp;
-			break;
 		case 1:
-			osc.disconnectOut();
-			osc.out_triangle() >> amp;
+			osc.out_triangle().disconnectOut();
+			osc.out_saw() >> amplifier;
+			break;
+		case 0:
+			osc.out_saw().disconnectOut();
+			osc.out_triangle() >> amplifier;
 			break;
 		}
 		choose++;
@@ -428,7 +431,7 @@ private:
 	Figures::Polygon polygon;
 	FigureGraphic* fg;
 	pdsp::ValueControl  pitch_ctrl;
-	pdsp::Amp           amp;
+	pdsp::Amp           amplifier;
 	pdsp::VAOscillator  osc;
 	pdsp::ADSR			env;
 
