@@ -381,7 +381,7 @@ public:
 
 	void patch() {
 
-		//patching
+		//patchinga
 		osc.out_triangle() >> amplifier >> output;
 		env >> amplifier.in_mod();
 		trig_in >> env;
