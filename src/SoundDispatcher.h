@@ -7,6 +7,8 @@ const int OUTPUT = 216;
 
 class SoundDispatcher : public EventClient {
 
+	
+
 	std::map<int, TableObject*> TableObjects;
 	std::set<TableObject* > ObjectsOnTable;
 

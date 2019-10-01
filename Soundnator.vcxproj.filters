@@ -640,6 +640,9 @@
     <ClCompile Include="src\SoundDispatcher.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\TableObject.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="src">
@@ -4146,6 +4149,9 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="src\SoundDispatcher.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TableObject.h">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>
