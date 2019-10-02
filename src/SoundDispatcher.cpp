@@ -109,47 +109,49 @@ std::pair<TableObject*, TableObject*> SoundDispatcher::findShorterDistancesFrom(
 }
 
 void SoundDispatcher::processConnections(TableObject* object) {
-	cout << "processConnection " << object->getId() << endl;
+	if (object) {
+		cout << "processConnection " << object->getId() << endl;
 
-	std::pair<TableObject*, TableObject*> shorter = findShorterDistancesFrom(object);
+		std::pair<TableObject*, TableObject*> shorter = findShorterDistancesFrom(object);
 
-	if (shorter.first) {
-		cout << "have first. ";
-		if (shorter.second) {
-			cout << "have second. ";
-			shorter.second->isConnectedTo(shorter.first) ? (cout << "second is connected. ") : (cout << "second is not connected. ");
+		if (shorter.first) {
+			cout << "have first. ";
+			if (shorter.second) {
+				cout << "have second. ";
+				shorter.second->isConnectedTo(shorter.first) ? (cout << "second is connected. ") : (cout << "second is not connected. ");
 
-			object->canConnectTo(shorter.first) ? (cout << "can connect. ") : (cout << "can not connect. ");
+				object->canConnectTo(shorter.first) ? (cout << "can connect. ") : (cout << "can not connect. ");
 
-			if (object->canConnectTo(shorter.first)) {
+				if (object->canConnectTo(shorter.first)) {
 
-				if (shorter.second->isConnectedTo(shorter.first)) {
-					auto distSecondToFirst = shorter.second->getDistanceTo(shorter.first);
-					auto distObjToFirst = object->getDistanceTo(shorter.first);
-					auto distObjToSecond = object->getDistanceTo(shorter.second);
+					if (shorter.second->isConnectedTo(shorter.first)) {
+						auto distSecondToFirst = shorter.second->getDistanceTo(shorter.first);
+						auto distObjToFirst = object->getDistanceTo(shorter.first);
+						auto distObjToSecond = object->getDistanceTo(shorter.second);
 
-					if ((distSecondToFirst > distObjToFirst) && (distObjToSecond < distSecondToFirst)) {
-						cout << "distance. ";
-						if (shorter.second->canConnectTo(object)) {
-							shorter.second->connectTo(object);
+						if ((distSecondToFirst > distObjToFirst) && (distObjToSecond < distSecondToFirst)) {
+							cout << "distance. ";
+							if (shorter.second->canConnectTo(object)) {
+								shorter.second->connectTo(object);
+							}
 						}
 					}
-				}
 
-				if (shorter.first->haveConnection()) {
+					if (shorter.first->haveConnection()) {
+						object->connectTo(shorter.first);
+					}
+				}
+			}
+			else {
+				cout << "not have second. ";
+				if (object->canConnectTo(shorter.first)) {
 					object->connectTo(shorter.first);
 				}
 			}
 		}
-		else {
-			cout << "not have second. ";
-			if (object->canConnectTo(shorter.first)) {
-				object->connectTo(shorter.first);
-			}
-		}
-	}
 
-	cout << endl;
+		cout << endl;
+	}
 
 }
 
