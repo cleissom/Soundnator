@@ -217,6 +217,8 @@ void TableObject::remove() {
 void TableObject::drawAudioWave() {
 	ofPushMatrix();
 
+	ofSetColor(255, 255, 255, 255);
+
 	TableObject* nextObj = getFollowingObject();
 	float dist = this->getDistanceTo(getFollowingObject());
 	float yHalf = y / 2;
@@ -224,7 +226,7 @@ void TableObject::drawAudioWave() {
 	ofRotateRad(this->getAngleTo(nextObj));
 	ofTranslate(0, -yHalf);
 	ofNoFill();
-	ofSetLineWidth(1);
+	ofSetLineWidth(3);
 
 	int samples = dist / xMult;
 	int bufferIndex = 1;
@@ -276,7 +278,7 @@ void TableObject::setToScope(pdsp::Patchable& in) {
 	in >> scope >> engine.blackhole();
 }
 
-
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Generator::Generator(int id, connectionType_t connection) : TableObject(id, connection) {
 	patch();
@@ -361,6 +363,7 @@ void Generator::objectDraw() {
 
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 Effect::Effect(int id, connectionType_t connection) : TableObject(id, connection) {
@@ -393,7 +396,7 @@ bool Effect::objectIsConnectableToOutput() {
 }
 
 
-
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Controller::Controller(int id, connectionType_t connection) : TableObject(id, connection) {
 	patch();
