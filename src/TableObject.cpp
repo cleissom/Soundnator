@@ -281,10 +281,10 @@ void TableObject::setToScope(pdsp::Patchable& in) {
 Generator::Generator(int id, connectionType_t connection) : TableObject(id, connection) {
 	patch();
 
-	polygon.AddVertex(ofPoint(-0.025f, -0.05f));
 	polygon.AddVertex(ofPoint(-0.025f, -0.075f));
+	polygon.AddVertex(ofPoint(-0.025f, -0.1f));
+	polygon.AddVertex(ofPoint(0.025f, -0.1f));
 	polygon.AddVertex(ofPoint(0.025f, -0.075f));
-	polygon.AddVertex(ofPoint(0.025f, -0.05f));
 	fg = new FigureGraphic(&polygon);
 	fg->registerMyEvent(InputGestureDirectFingers::Instance().enterCursor, &Generator::enter, this);
 

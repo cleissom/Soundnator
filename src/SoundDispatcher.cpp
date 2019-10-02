@@ -29,8 +29,8 @@ void SoundDispatcher::addOutputToTable() {
 	DirectObject* dobj = new DirectObject();
 	dobj->s_id = -1;
 	dobj->f_id = OUTPUT;
-	dobj->setX(1.0f);
-	dobj->setY(0.5f);
+	dobj->setX(0.5f);
+	dobj->setY(0.5f/3.0f);
 	dobj->angle = 0;
 	dobj->xspeed = 0;
 	dobj->yspeed = 0;
