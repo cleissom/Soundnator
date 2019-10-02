@@ -442,7 +442,7 @@ void Output::patch() {
 #ifdef PC
 	SoundEngine::I().getEngine().setDeviceID(1);
 #else
-	engine.setDeviceID(0);
+	SoundEngine::I().getEngine().setDeviceID(0);
 #endif // PC
 
 	SoundEngine::I().getEngine().setup(44100, 512, 3);
