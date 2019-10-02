@@ -13,11 +13,14 @@
 #include "InputGestureDirectObjects.hpp"
 #include "InputGestureTap.hpp"
 
+#include "SoundEngine.h"
+
 class Generator;
 class Effect;
 class Controller;
 class Global;
 class Output;
+
 
 typedef enum { AUDIO, CONTROL } connectionType_t;
 

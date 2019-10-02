@@ -29,6 +29,7 @@ public:
 	void enterObject(InputGestureDirectObjects::enterObjectArgs& a);
 	void updateObject(InputGestureDirectObjects::updateObjectArgs& a);
 	void exitObject(InputGestureDirectObjects::exitObjectArgs& a);
+
 };
 
 #endif

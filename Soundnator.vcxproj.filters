@@ -4154,5 +4154,8 @@
     <ClInclude Include="src\TableObject.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="src\SoundEngine.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -1666,6 +1666,7 @@ C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\libs\audiofft</Additi
     <ClInclude Include="..\..\ofxPDSP\src\sequencer\stockBehaviors.h" />
     <ClInclude Include="..\..\ofxPDSP\src\types.h" />
     <ClInclude Include="src\SoundDispatcher.h" />
+    <ClInclude Include="src\SoundEngine.h" />
     <ClInclude Include="src\SoundnatorApp.h" />
     <ClInclude Include="src\TableObject.h" />
   </ItemGroup>

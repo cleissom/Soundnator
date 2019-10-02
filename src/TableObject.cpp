@@ -1,7 +1,5 @@
 #include "TableObject.h"
 
-pdsp::Engine engine;
-
 
 TableObject::TableObject(int id, connectionType_t connection) : id(id), dobj(nullptr), connection(connection), followingObj(nullptr), precedingAudioObj(nullptr), precedingControlObj(nullptr) {
 	//registerMyEvent(InputGestureDirectFingers::I().newCursor, &TableObject::addCursor, this);
@@ -275,7 +273,7 @@ float TableObject::getAngleTo(TableObject* obj) {
 
 
 void TableObject::setToScope(pdsp::Patchable& in) {
-	in >> scope >> engine.blackhole();
+	in >> scope >> SoundEngine::I().getEngine().blackhole();
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -442,15 +440,15 @@ void Output::patch() {
 
 	//------------SETUPS AND START AUDIO-------------
 #ifdef PC
-	engine.setDeviceID(1);
+	SoundEngine::I().getEngine().setDeviceID(1);
 #else
 	engine.setDeviceID(0);
 #endif // PC
 
-	engine.setup(44100, 512, 3);
+	SoundEngine::I().getEngine().setup(44100, 512, 3);
 
-	input >> engine.audio_out(0);
-	input >> engine.audio_out(1);
+	input >> SoundEngine::I().getEngine().audio_out(0);
+	input >> SoundEngine::I().getEngine().audio_out(1);
 }
 
 void Output::draw() {
