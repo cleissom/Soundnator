@@ -149,7 +149,7 @@ class Controller : public TableObject {
 public:
 
 	Controller(int id = -1, connectionType_t connection = CONTROL);
-	Controller::Controller(const Controller  & other) { patch(); } // you need this to use std::vector with your class, otherwise will not compile
+	Controller(const Controller  & other) { patch(); } // you need this to use std::vector with your class, otherwise will not compile
 
 	void patch();
 	void addCursor(InputGestureDirectFingers::newCursorArgs & a);
