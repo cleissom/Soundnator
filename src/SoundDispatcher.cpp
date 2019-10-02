@@ -44,29 +44,34 @@ void SoundDispatcher::addOutputToTable() {
 }
 
 void SoundDispatcher::addObjectToTable(TableObject* obj) {
-	if (ObjectsOnTable.find(obj) == ObjectsOnTable.end()) {
-		ObjectsOnTable.insert(obj);
+	if (obj) {
+		if (ObjectsOnTable.find(obj) == ObjectsOnTable.end()) {
+			ObjectsOnTable.insert(obj);
+		}
 	}
 }
 
 void SoundDispatcher::addObjectToTable(DirectObject* dobj) {
 	int id = dobj->f_id;
-	if (ObjectsOnTable.find(TableObjects[id]) == ObjectsOnTable.end()) {
-		TableObjects[id]->setDirectObject(dobj);
-		ObjectsOnTable.insert(TableObjects[id]);
+	if (TableObjects[id]) {
+		if (ObjectsOnTable.find(TableObjects[id]) == ObjectsOnTable.end()) {
+			TableObjects[id]->setDirectObject(dobj);
+			ObjectsOnTable.insert(TableObjects[id]);
+		}
 	}
 
 }
 
 void SoundDispatcher::removeObjectFromTable(DirectObject* dobj) {
 	int id = dobj->f_id;
-	if (ObjectsOnTable.find(TableObjects[id]) != ObjectsOnTable.end()) {
-		TableObjects[id]->remove();
-		ObjectsOnTable.erase(TableObjects[id]);
+	if (TableObjects[id]) {
+		if (ObjectsOnTable.find(TableObjects[id]) != ObjectsOnTable.end()) {
+			TableObjects[id]->remove();
+			ObjectsOnTable.erase(TableObjects[id]);
+		}
 	}
 
 }
-
 
 
 std::pair<TableObject*, TableObject*> SoundDispatcher::findShorterDistancesFrom(TableObject* obj) {

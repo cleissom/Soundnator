@@ -453,6 +453,7 @@ void Output::patch() {
 
 void Output::draw() {
 	ofFill();
+	ofSetColor(255, 255, 255, 255);
 	ofDrawCircle(getDirectObject()->getX(), getDirectObject()->getY(), 0.03f);
 }
 
