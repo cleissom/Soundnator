@@ -23,8 +23,8 @@ int TableObject::getId() {
 
 void TableObject::updateTurnMultiplier(float angle) {
 	float derivative = angle - rawAngleLastValue;
-	if (derivative > derivativeThreshold) turnsMultiplier--;
-	else if (derivative < (-derivativeThreshold)) turnsMultiplier++;
+	if (derivative > derivativeThreshold) turnsMultiplier++;
+	else if (derivative < (-derivativeThreshold)) turnsMultiplier--;
 	rawAngleLastValue = angle;
 }
 
@@ -40,7 +40,7 @@ void TableObject::updateObject(InputGestureDirectObjects::updateObjectArgs& a) {
 	if (id == this->id) {
 		float rawAngle = a.object->angle;
 		updateTurnMultiplier(rawAngle);
-		float angle = turnsMultiplier * M_2PI + rawAngle;
+		float angle = turnsMultiplier * M_2PI - rawAngle;
 		cout << angle << endl;
 		updateAngleValue(angle);
 	}
