@@ -317,7 +317,8 @@ void Generator::update() {
 void Generator::patch() {
 
 	//patchinga
-	osc.out_triangle() >> amplifier >> output;
+	osc.out_pulse() >> amplifier;
+	amplifier * dB(-12.0f) >> output;
 	env >> amplifier.in_mod();
 	trig_in >> env;
 	pitch_ctrl >> osc.in_pitch();
@@ -346,12 +347,12 @@ void Generator::Tap(InputGestureTap::TapArgs & a) {
 	cout << "TAP" << endl;
 	switch (choose % 2) {
 	case 1:
-		osc.out_triangle().disconnectOut();
+		osc.out_pulse().disconnectOut();
 		osc.out_saw() >> amplifier;
 		break;
 	case 0:
 		osc.out_saw().disconnectOut();
-		osc.out_triangle() >> amplifier;
+		osc.out_pulse() >> amplifier;
 		break;
 	}
 	choose++;
