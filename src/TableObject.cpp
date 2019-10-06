@@ -281,19 +281,21 @@ void TableObject::setToScope(pdsp::Patchable& in) {
 Generator::Generator(int id, connectionType_t connection) : TableObject(id, connection) {
 	patch();
 	button = new TableButton(45.0f, 0.075f);
-	//slider = new TableSlider();
+	slider = new TableSlider();
 	registerEvent(button->TapButton, &Generator::Tap, this);
-	//registerEvent(slider->updateSlider, &Generator::updateVolume, this);
+	registerEvent(slider->updateSlider, &Generator::updateVolume, this);
 }
 
 void Generator::update() {
 	if (getDirectObject()) {
 		button->updatePosition(this->getDirectObject()->getX(), this->getDirectObject()->getY());
-		//slider->updatePosition(this->getDirectObject()->getX(), this->getDirectObject()->getY());
+		slider->updatePosition(this->getDirectObject()->getX(), this->getDirectObject()->getY());
 		button->isHidden(false);
+		slider->isHidden(false);
 	}
 	else {
 		button->isHidden(true);
+		slider->isHidden(true);
 	}
 }
 

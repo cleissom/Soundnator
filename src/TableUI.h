@@ -80,7 +80,9 @@ public:
 
 	ofEvent<updateSliderArgs> updateSlider;
 
-	TableSlider();
+	TableSlider(float angle = 0.0f, float distanceOffset = 0.075f, float sliderSize = 1.0f, float circleSize = 1.0f, bool invertY = false);
+	void updateTransformationMatrix();
+	void isHidden(bool is);
 	void draw();
 
 	void fingersEnter(InputGestureDirectFingers::enterCursorArgs & a);
@@ -91,7 +93,15 @@ private:
 	FigureGraphic* base;
 	FigureGraphic* sliderLine;
 	FigureGraphic* sliderCircle;
+	float sliderSize;
+	float circleSize;
+	bool invertY;
+	float lastPercentage = 0;
+	float scaledHeight;
+	ofVec3f basePoint;
 
+	const float sliderLineHeight = 0.1f;
+	const float sliderWidth = 0.05f;
 };
 
 #endif

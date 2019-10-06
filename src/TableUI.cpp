@@ -60,11 +60,11 @@ void TableButton::updateTransformationMatrix() {
 }
 
 void TableButton::fingersEnter(InputGestureDirectFingers::enterCursorArgs& a) {
-	cout << "fingers enter" << endl;
+	//cout << "fingers enter" << endl;
 };
 
 void TableButton::fingersTap(InputGestueTap::TapArgs& a) {
-	cout << "tap" << endl;
+	//cout << "tap" << endl;
 	commomTableButtonArgs args;
 	args.id = 1;
 	ofNotifyEvent(TapButton, args);
@@ -78,54 +78,100 @@ void TableButton::isHidden(bool is) {
 
 
 
-TableSlider::TableSlider() {
+TableSlider::TableSlider(float angle, float distanceOffset, float sliderSize, float circleSize, bool invertY) : TableUIBase(angle, distanceOffset), sliderSize(sliderSize), circleSize(circleSize), invertY(invertY) {
+	scaledHeight = sliderSize * sliderLineHeight;
+
 	Figures::Polygon* polygon = new Figures::Polygon();
 
-	polygon->AddVertex(ofPoint(0.05f, 0.1f));
-	polygon->AddVertex(ofPoint(0.05f, -0.1f));
-	polygon->AddVertex(ofPoint(0.1f, -0.1f));
-	polygon->AddVertex(ofPoint(0.1f, 0.1f));
-
+	polygon->AddVertex(ofPoint(-(sliderWidth/2.0f), 0.0f));
+	polygon->AddVertex(ofPoint((sliderWidth / 2.0f), 0.0f));
+	polygon->AddVertex(ofPoint((sliderWidth / 2.0f), sliderLineHeight));
+	polygon->AddVertex(ofPoint(-(sliderWidth / 2.0f), sliderLineHeight));
 	base = new FigureGraphic(polygon);
 	this->registerFingerEvents(base);
-
+	base->isHidden(true);
 
 	polygon = new Figures::Polygon();
 	drawCircleOnPolygon(polygon);
 	sliderCircle = new FigureGraphic(polygon);
-
-
-	sliderCircle->color.r = ofRandom(0, 255);
-	sliderCircle->color.g = ofRandom(0, 255);
-	sliderCircle->color.b = ofRandom(0, 255);
-	sliderCircle->color.a = 100;
+	sliderCircle->color.r = 255;
+	sliderCircle->color.g = 255;
+	sliderCircle->color.b = 255;
+	sliderCircle->color.a = 255;
+	sliderCircle->canCollide(false);
 	sliderCircle->isHidden(true);
+
+	float linePolygonWidth = 0.005f;
+	polygon = new Figures::Polygon();
+	polygon->AddVertex(ofPoint(-(linePolygonWidth / 2.0f), 0.0f));
+	polygon->AddVertex(ofPoint((linePolygonWidth / 2.0f), 0.0f));
+	polygon->AddVertex(ofPoint((linePolygonWidth / 2.0f), sliderLineHeight));
+	polygon->AddVertex(ofPoint(-(linePolygonWidth / 2.0f), sliderLineHeight));
+	sliderLine = new FigureGraphic(polygon);
+	sliderLine->color.r = 255;
+	sliderLine->color.g = 255;
+	sliderLine->color.b = 255;
+	sliderLine->color.a = 100;
+	sliderLine->canCollide(false);
+	sliderLine->hasAlpha(true);
+	sliderLine->isHidden(true);
 };
 
+void TableSlider::updateTransformationMatrix() {
+	ofMatrix4x4 M;
+	M.makeIdentityMatrix();
+
+	M.glTranslate(this->getX(), this->getY(), 0);
+	M.glRotate(this->getAngle(), 0, 0, 1);
+	M.glTranslate(this->getDistanceOffset(), 0.0f, 0.0f);
+
+	
+	float halfSize = scaledHeight / 2.0f;
+
+	if (invertY) {
+		M.glTranslate(0.0f, halfSize, 0.0f);
+		M.glRotate(180, 0, 0, 1);
+	}
+	else {
+		M.glTranslate(0.0f, -halfSize, 0.0f);
+	}
+
+	basePoint = ofVec3f(0, 0, 0);
+	basePoint = basePoint * M;
+
+	base->transformation = M;
+	sliderLine->transformation = M;
+
+
+	M.glTranslate(0, scaledHeight * (lastPercentage / 100.0f), 0);
+	M.glScale(circleSize * 0.01f, circleSize * 0.01f, 1);
+	sliderCircle->transformation = M;
+}
+
+void TableSlider::isHidden(bool is){
+	sliderLine->isHidden(is);
+	sliderCircle->isHidden(is);
+}
+
 void TableSlider::draw() {
-	/*ofPushMatrix();
-	ofTranslate(this->get, this->y, 0);
-	ofTranslate(0.075f, 0.0f, 0);
-	ofDrawLine(0.0f, 0.1f, 0.0f, -0.1f);
-	ofSetLineWidth(3);
-	ofPopMatrix();*/
 }
 
 void TableSlider::fingersEnter(InputGestureDirectFingers::enterCursorArgs& a) {
-	//cout << "fingers enter" << endl;
+	cout << "fingers enter slider" << endl;
 };
 void TableSlider::fingersUpdate(InputGestureDirectFingers::updateCursorArgs& a) {
-	/*float size = 0.2f;
-	float min = this->y - size/2.0f;
-	float percentage = ((a.finger->getY() - min) / size)*100.0f;
+	cout << "fingers update slider" << endl;
+	float percentage = ((a.finger->getDistance(basePoint.x, basePoint.y)) / scaledHeight)*100.0f;
 
 	cout << "fingers update: " << percentage << endl;
 
 	updateSliderArgs args;
 	args.percentage = percentage;
-	ofNotifyEvent(updateSlider, args);*/
+	ofNotifyEvent(updateSlider, args);
+
+	lastPercentage = percentage;
 };
 
 void TableSlider::fingersTap(InputGestueTap::TapArgs& a) {
-	cout << "a" << endl;
+	cout << "tap slider" << endl;
 };
