@@ -14,6 +14,7 @@
 #include "InputGestureTap.hpp"
 
 #include "SoundEngine.h"
+#include "TableUI.h"
 
 class Generator;
 class Effect;
@@ -104,21 +105,22 @@ public:
 	Generator(int id = -1, connectionType_t connection = AUDIO);
 	Generator(const Generator & other) { patch(); } // you need this to use std::vector with your class, otherwise will not compile
 
-	void enter(InputGestureDirectFingers::enterCursorArgs& a);
 	void update();
 	void patch();
 	void updateAngleValue(float angle);
 	bool objectIsConnectableTo(TableObject* obj);
 	bool objectIsConnectableToOutput();
-	void Tap(InputGestureTap::TapArgs & a);
+	void updateVolume(TableSlider::updateSliderArgs & a);
+	void Tap(TableButton::TapButtonArgs & a);
 	void objectDraw();
 
 private:
 	int choose = 0;
-	Figures::Polygon polygon;
-	FigureGraphic* fg;
+	TableButton*  button;
+	TableSlider*  slider;
 	pdsp::ValueControl  pitch_ctrl;
-	pdsp::Amp           amplifier;
+	pdsp::Amp           env_amp;
+	pdsp::Amp           amp;
 	pdsp::VAOscillator  osc;
 	pdsp::ADSR			env;
 

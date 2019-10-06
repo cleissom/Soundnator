@@ -79,8 +79,6 @@ std::pair<TableObject*, TableObject*> SoundDispatcher::findShorterDistancesFrom(
 	float second = 10001;
 	std::pair<TableObject*, TableObject*> shorter(nullptr, nullptr);
 
-	cout << "Finding Shorter Distance from " << obj->getId();
-
 	for (TableObject* object : ObjectsOnTable) {
 		cout << object->getId() << endl;
 		if (object != obj) {
@@ -98,30 +96,14 @@ std::pair<TableObject*, TableObject*> SoundDispatcher::findShorterDistancesFrom(
 		}
 	}
 
-	if (shorter.second) {
-		cout << ". first: " << shorter.first->getId() << ". second: " << shorter.second->getId() << endl;
-	}
-	else if (shorter.first) {
-		cout << ". first: " << shorter.first->getId() << endl;
-	}
-
 	return shorter;
 }
 
 void SoundDispatcher::processConnections(TableObject* object) {
 	if (object) {
-		cout << "processConnection " << object->getId() << endl;
-
 		std::pair<TableObject*, TableObject*> shorter = findShorterDistancesFrom(object);
-
 		if (shorter.first) {
-			cout << "have first. ";
 			if (shorter.second) {
-				cout << "have second. ";
-				shorter.second->isConnectedTo(shorter.first) ? (cout << "second is connected. ") : (cout << "second is not connected. ");
-
-				object->canConnectTo(shorter.first) ? (cout << "can connect. ") : (cout << "can not connect. ");
-
 				if (object->canConnectTo(shorter.first)) {
 
 					if (shorter.second->isConnectedTo(shorter.first)) {
@@ -130,7 +112,6 @@ void SoundDispatcher::processConnections(TableObject* object) {
 						auto distObjToSecond = object->getDistanceTo(shorter.second);
 
 						if ((distSecondToFirst > distObjToFirst) && (distObjToSecond < distSecondToFirst)) {
-							cout << "distance. ";
 							if (shorter.second->canConnectTo(object)) {
 								shorter.second->connectTo(object);
 							}
@@ -143,7 +124,6 @@ void SoundDispatcher::processConnections(TableObject* object) {
 				}
 			}
 			else {
-				cout << "not have second. ";
 				if (object->canConnectTo(shorter.first)) {
 					object->connectTo(shorter.first);
 				}
@@ -167,7 +147,6 @@ void SoundDispatcher::newObject(InputGestureDirectObjects::newObjectArgs& a) {
 }
 
 void SoundDispatcher::enterObject(InputGestureDirectObjects::enterObjectArgs& a) {
-	cout << "Enter object" << endl;
 }
 
 void SoundDispatcher::updateObject(InputGestureDirectObjects::updateObjectArgs& a) {
@@ -175,6 +154,5 @@ void SoundDispatcher::updateObject(InputGestureDirectObjects::updateObjectArgs& 
 }
 
 void SoundDispatcher::exitObject(InputGestureDirectObjects::exitObjectArgs& a) {
-	cout << "Exit object" << endl;
 	removeObjectFromTable(a.object);
 }

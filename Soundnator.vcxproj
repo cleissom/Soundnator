@@ -610,6 +610,7 @@ C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\libs\audiofft</Additi
     <ClCompile Include="src\SoundDispatcher.cpp" />
     <ClCompile Include="src\SoundnatorApp.cpp" />
     <ClCompile Include="src\TableObject.cpp" />
+    <ClCompile Include="src\TableUI.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\addons\ofx2DFigures\src\BoundingBox.h" />
@@ -1669,6 +1670,7 @@ C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\libs\audiofft</Additi
     <ClInclude Include="src\SoundEngine.h" />
     <ClInclude Include="src\SoundnatorApp.h" />
     <ClInclude Include="src\TableObject.h" />
+    <ClInclude Include="src\TableUI.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(OF_ROOT)\libs\openFrameworksCompiled\project\vs\openframeworksLib.vcxproj">

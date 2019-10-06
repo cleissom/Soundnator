@@ -280,52 +280,35 @@ void TableObject::setToScope(pdsp::Patchable& in) {
 
 Generator::Generator(int id, connectionType_t connection) : TableObject(id, connection) {
 	patch();
-
-	polygon.AddVertex(ofPoint(-0.025f, -0.075f));
-	polygon.AddVertex(ofPoint(-0.025f, -0.1f));
-	polygon.AddVertex(ofPoint(0.025f, -0.1f));
-	polygon.AddVertex(ofPoint(0.025f, -0.075f));
-	fg = new FigureGraphic(&polygon);
-	fg->registerMyEvent(InputGestureDirectFingers::Instance().enterCursor, &Generator::enter, this);
-
-	fg->color.r = ofRandom(0, 255);
-	fg->color.g = ofRandom(0, 255);
-	fg->color.b = ofRandom(0, 255);
-	fg->color.a = 100;
-	fg->transformation.setTranslation(0.5, 0.5, 0);
-	fg->isHidden(true);
-
-	fg->registerMyEvent(InputGestureTap::I().Tap, &Generator::Tap, this);
-
-}
-
-void Generator::enter(InputGestureDirectFingers::enterCursorArgs& a) {
-	cout << "enter figure" << endl;
-
+	button = new TableButton(45.0f, 0.075f);
+	//slider = new TableSlider();
+	registerEvent(button->TapButton, &Generator::Tap, this);
+	//registerEvent(slider->updateSlider, &Generator::updateVolume, this);
 }
 
 void Generator::update() {
 	if (getDirectObject()) {
-		fg->isHidden(false);
-		fg->transformation.setTranslation(this->getDirectObject()->getX(), this->getDirectObject()->getY(), 0);
+		button->updatePosition(this->getDirectObject()->getX(), this->getDirectObject()->getY());
+		//slider->updatePosition(this->getDirectObject()->getX(), this->getDirectObject()->getY());
+		button->isHidden(false);
 	}
 	else {
-		fg->isHidden(true);
+		button->isHidden(true);
 	}
 }
 
 void Generator::patch() {
 
 	//patchinga
-	osc.out_pulse() >> amplifier;
-	amplifier * dB(-12.0f) >> output;
-	env >> amplifier.in_mod();
+	osc.out_pulse() >> env_amp;
+	env_amp >> amp * dB(-12.0f) >> output;
+	env >> env_amp.in_mod();
 	trig_in >> env;
 	pitch_ctrl >> osc.in_pitch();
 	pitch_ctrl.enableSmoothing(50.0f);
-	amplifier.set(1.0f);
+	amp.set(1.0f);
 	trig_in.set(1.0f);
-	this->setToScope(amplifier);
+	this->setToScope(amp);
 
 
 }
@@ -343,16 +326,21 @@ bool Generator::objectIsConnectableToOutput() {
 	return true;
 }
 
-void Generator::Tap(InputGestureTap::TapArgs & a) {
-	cout << "TAP" << endl;
+void Generator::updateVolume(TableSlider::updateSliderArgs& a) {
+	cout << "update volume to: " << (a.percentage / 100.0f) << endl;
+	(a.percentage) >> env.in_sustain();
+}
+
+
+void Generator::Tap(TableButton::TapButtonArgs& a) {
 	switch (choose % 2) {
 	case 1:
 		osc.out_pulse().disconnectOut();
-		osc.out_saw() >> amplifier;
+		osc.out_saw() >> env_amp;
 		break;
 	case 0:
 		osc.out_saw().disconnectOut();
-		osc.out_pulse() >> amplifier;
+		osc.out_pulse() >> env_amp;
 		break;
 	}
 	choose++;
