@@ -93,6 +93,7 @@ void TableObject::makeConnectionTo(TableObject* obj) {
 	default:
 		break;
 	}
+	obj->connectionUpdated = true;
 }
 
 void TableObject::makeDisconnectionOut(TableObject* obj) {
@@ -108,6 +109,7 @@ void TableObject::makeDisconnectionOut(TableObject* obj) {
 	default:
 		break;
 	}
+	obj->connectionUpdated = true;
 }
 
 void TableObject::makeDisconnectionIn(TableObject* obj) {
@@ -124,6 +126,7 @@ void TableObject::makeDisconnectionIn(TableObject* obj) {
 	default:
 		break;
 	}
+	obj->connectionUpdated = true;
 }
 
 
@@ -298,27 +301,44 @@ void Generator::update() {
 		button->isHidden(true);
 		slider->isHidden(true);
 	}
+
+	if (connectionUpdated) {
+		if (*getPrecedingObj(this, CONTROL)) {
+			env >> ampEnv.in_mod();
+			cout << "control" << endl;
+		}
+		else {
+			env.disconnectOut();
+			cout << "not control" << endl;
+		}
+		connectionUpdated = false;
+	}
 }
 
 void Generator::patch() {
 
 	//patchinga
-	osc.out_pulse() >> env_amp;
-	env_amp >> amp * dB(-12.0f) >> output;
-	env >> env_amp.in_mod();
-	trig_in >> env;
+	osc.out_pulse() >>	ampEnv;
+						ampEnv >> amp * dB(-12.0f) >> output;
+	//env.set(0.0f, 50.0f, 1.0f, 100.0f) >> ampEnv.in_mod();
+	trig_in >> env.in_trig();
+	//1.0f >> env.in_trig();
 	pitch_ctrl >> osc.in_pitch();
 	pitch_ctrl.enableSmoothing(50.0f);
+
+	//1.0f >> ampEnv.in_mod();
+
 	amp.set(1.0f);
 	trig_in.set(1.0f);
+	ampEnv.set(1.0f);
+
 	this->setToScope(amp);
-
-
 }
 
+static vector<float> akebono { 72.0f, 74.0f, 75.0f, 79.0f, 80.0f, 84.0f, 86.0f, 87.0f };
+
 void Generator::updateAngleValue(float angle) {
-	float pitch = ofMap(angle, 0, 5.0f * M_2PI, 36.0f, 96.0f);
-	pitch_ctrl.set(pitch);
+	pitch_ctrl.set(akebono[ofClamp(angle,0,akebono.size()-1)]);
 }
 
 bool Generator::objectIsConnectableTo(TableObject* obj) {
@@ -339,11 +359,11 @@ void Generator::Tap(TableButton::TapButtonArgs& a) {
 	switch (choose % 2) {
 	case 1:
 		osc.out_pulse().disconnectOut();
-		osc.out_saw() >> env_amp;
+		osc.out_saw() >> ampEnv;
 		break;
 	case 0:
 		osc.out_saw().disconnectOut();
-		osc.out_pulse() >> env_amp;
+		osc.out_pulse() >> ampEnv;
 		break;
 	}
 	choose++;
@@ -397,6 +417,7 @@ Controller::Controller(int id, connectionType_t connection) : TableObject(id, co
 void Controller::patch() {
 	pitch_ctrl >> osc;
 	osc.out_pulse() >> amp >> trig_out;
+	//SoundEngine::I().getEngine().sequencer.sections[0].out_trig(0) >> amp >> trig_out;
 	this->setToScope(amp);
 	amp.set(1.0f);
 }

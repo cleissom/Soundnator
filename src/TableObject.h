@@ -79,6 +79,7 @@ protected:
 	pdsp::PatchNode     pitch_out;
 	pdsp::PatchNode     trig_in;
 	pdsp::PatchNode     trig_out;
+	bool connectionUpdated;
 
 private:
 	int		id;
@@ -95,6 +96,7 @@ private:
 	float xMult = 0.0003;
 	int bufferLen = 8192;
 	float y = 0.05;
+
 };
 
 
@@ -119,7 +121,7 @@ private:
 	TableButton*  button;
 	TableSlider*  slider;
 	pdsp::ValueControl  pitch_ctrl;
-	pdsp::Amp           env_amp;
+	pdsp::Amp           ampEnv;
 	pdsp::Amp           amp;
 	pdsp::VAOscillator  osc;
 	pdsp::ADSR			env;

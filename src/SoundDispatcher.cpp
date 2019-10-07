@@ -1,6 +1,24 @@
 #include "SoundDispatcher.h"
+#include "SoundEngine.h"
 
 SoundDispatcher::SoundDispatcher() {
+	SoundEngine::I().getEngine().sequencer.init(2, 4, 120);
+
+	auto & kick0 = SoundEngine::I().getEngine().sequencer.sections[0].sequence(0);
+	kick0.begin();
+	kick0.delay(0.0).bang(1.0f);
+	kick0.delay(0.0+0.1).bang(0.0f);
+	kick0.delay(1.0 / 4.0);
+	kick0.bang(0.5f);
+	kick0.delay(1.0 / 4.0 + 0.1).bang(0.0f);
+	kick0.delay(2.0f / 4.0).bang(0.8f);
+	kick0.delay(2.0 / 4.0 + 0.1).bang(0.0f);
+	kick0.delay(3.0f / 4.0).bang(0.6f);
+	kick0.delay(3.0 / 4.0 + 0.1).bang(0.0f);
+	kick0.end();
+	SoundEngine::I().getEngine().sequencer.sections[0].launch(0);
+
+
 	TableObjects.insert(std::make_pair(0, new Generator(0)));
 	TableObjects.insert(std::make_pair(1, new Generator(1)));
 	TableObjects.insert(std::make_pair(2, new Effect(2)));
@@ -15,6 +33,7 @@ SoundDispatcher::SoundDispatcher() {
 	registerEvent(InputGestureDirectObjects::I().enterObject, &SoundDispatcher::enterObject, this);
 	registerEvent(InputGestureDirectObjects::I().updateObject, &SoundDispatcher::updateObject, this);
 	registerEvent(InputGestureDirectObjects::I().removeObject, &SoundDispatcher::exitObject, this);
+
 
 	addOutputToTable();
 }
