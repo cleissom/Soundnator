@@ -80,7 +80,7 @@ public:
 
 	ofEvent<updateSliderArgs> updateSlider;
 
-	TableSlider(float angle = 0.0f, float distanceOffset = 0.075f, float sliderSize = 1.0f, float circleSize = 1.0f, bool invertY = false);
+	TableSlider(float angle = 0.0f, float distanceOffset = 0.075f, float sliderSize = 1.0f, float circleSize = 1.0f, bool invertY = false, float startingPercentage = 100.0f);
 	void updateTransformationMatrix();
 	void isHidden(bool is);
 	void draw();
@@ -96,7 +96,7 @@ private:
 	float sliderSize;
 	float circleSize;
 	bool invertY;
-	float lastPercentage = 0;
+	float lastPercentage;
 	float scaledHeight;
 	ofVec3f basePoint;
 

@@ -47,6 +47,8 @@ TableButton::TableButton(float angle, float distanceOffset, float size) : TableU
 	base->color.b = ofRandom(0, 255);
 	base->color.a = 100;
 	base->isHidden(true);
+
+	updatePosition(0, 0);
 };
 
 void TableButton::updateTransformationMatrix() {
@@ -78,7 +80,7 @@ void TableButton::isHidden(bool is) {
 
 
 
-TableSlider::TableSlider(float angle, float distanceOffset, float sliderSize, float circleSize, bool invertY) : TableUIBase(angle, distanceOffset), sliderSize(sliderSize), circleSize(circleSize), invertY(invertY) {
+TableSlider::TableSlider(float angle, float distanceOffset, float sliderSize, float circleSize, bool invertY, float startingPercentage) : TableUIBase(angle, distanceOffset), sliderSize(sliderSize), circleSize(circleSize), invertY(invertY), lastPercentage(startingPercentage) {
 	scaledHeight = sliderSize * sliderLineHeight;
 
 	Figures::Polygon* polygon = new Figures::Polygon();
@@ -115,6 +117,8 @@ TableSlider::TableSlider(float angle, float distanceOffset, float sliderSize, fl
 	sliderLine->canCollide(false);
 	sliderLine->hasAlpha(true);
 	sliderLine->isHidden(true);
+
+	updatePosition(0, 0);
 };
 
 void TableSlider::updateTransformationMatrix() {

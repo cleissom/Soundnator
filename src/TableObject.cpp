@@ -111,6 +111,7 @@ void TableObject::makeDisconnectionOut(TableObject* obj) {
 }
 
 void TableObject::makeDisconnectionIn(TableObject* obj) {
+	if (isObject<Output>(obj)) return;
 	switch (connection)
 	{
 	case AUDIO:
@@ -280,7 +281,7 @@ void TableObject::setToScope(pdsp::Patchable& in) {
 
 Generator::Generator(int id, connectionType_t connection) : TableObject(id, connection) {
 	patch();
-	button = new TableButton(45.0f, 0.075f);
+	button = new TableButton(90.0f, 0.075f);
 	slider = new TableSlider();
 	registerEvent(button->TapButton, &Generator::Tap, this);
 	registerEvent(slider->updateSlider, &Generator::updateVolume, this);
@@ -330,7 +331,7 @@ bool Generator::objectIsConnectableToOutput() {
 
 void Generator::updateVolume(TableSlider::updateSliderArgs& a) {
 	cout << "update volume to: " << (a.percentage / 100.0f) << endl;
-	(a.percentage) >> env.in_sustain();
+	amp.set(a.percentage / 100.0f);
 }
 
 
