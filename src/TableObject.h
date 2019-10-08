@@ -125,7 +125,6 @@ private:
 	pdsp::Amp           amp;
 	pdsp::VAOscillator  osc;
 	pdsp::ADSR			env;
-
 };
 
 
@@ -159,6 +158,7 @@ public:
 	Controller(const Controller  & other) { patch(); } // you need this to use std::vector with your class, otherwise will not compile
 
 	void patch();
+	void update();
 	void addCursor(InputGestureDirectFingers::newCursorArgs & a);
 	void updateAngleValue(float angle);
 	bool objectIsConnectableTo(TableObject* obj);
@@ -170,7 +170,9 @@ private:
 	pdsp::VAOscillator  osc;
 	pdsp::ValueControl	pitch_ctrl;
 	pdsp::VAFilter      filter; // 24dB multimode filter
-
+	vector<bool> beats;
+	TableSequencer* tableSequencer;
+	int beatsNum = 16;
 };
 
 

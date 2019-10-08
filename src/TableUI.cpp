@@ -179,3 +179,103 @@ void TableSlider::fingersUpdate(InputGestureDirectFingers::updateCursorArgs& a) 
 void TableSlider::fingersTap(InputGestueTap::TapArgs& a) {
 	cout << "tap slider" << endl;
 };
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+TableCell::TableCell(float angle, float distanceOffset, float openingAngle, float thickness, int id) : TableUIBase(angle, distanceOffset), id(id) {
+	Figures::Polygon* polygon = new Figures::Polygon();
+
+	// inner arc
+	float step_value = M_PI / 60.0f;
+	for (float i = 0.0f; i < openingAngle; i += step_value) {
+		polygon->AddVertex(ofPoint(distanceOffset*cos(i), distanceOffset*sin(i)));
+	}
+
+	// outer arc
+	for (float i = openingAngle; i > 0.0f; i -= step_value) {
+		polygon->AddVertex(ofPoint((distanceOffset + thickness)*cos(i), (distanceOffset + thickness)*sin(i)));
+	}
+
+	base = new FigureGraphic(polygon);
+	this->registerFingerEvents(base);
+	base->isHidden(true);
+	base->hasAlpha(true);
+	
+
+	updatePosition(0, 0);
+};
+
+void TableCell::updateTransformationMatrix() {
+	ofMatrix4x4 M;
+	M.makeIdentityMatrix();
+	M.glTranslate(this->getX(), this->getY(), 0);
+	M.glRotateRad(this->getAngle(), 0, 0, 1);
+	base->transformation = M;
+
+	
+	if (active) {
+		base->color.r = 255;
+		base->color.b = 0;
+		base->color.g = 0;
+		base->color.a = 150;
+	}
+	else if (selected) {
+		base->color.b = 255;
+		base->color.b = 255;
+		base->color.g = 255;
+		base->color.a = 200;
+	}
+	else {
+		base->color.b = 255;
+		base->color.b = 255;
+		base->color.g = 255;
+		base->color.a = 100;
+	}
+}
+
+void TableCell::isHidden(bool is) {
+	base->isHidden(is);
+}
+
+void TableCell::fingersTap(InputGestueTap::TapArgs & a) {
+	cout << "Tap in da cell" << endl;
+	this->selected = not(selected);
+	tapCellArgs args;
+	args.id = this->id;
+	ofNotifyEvent(tapCell, args);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+TableSequencer::TableSequencer(float angle, float distanceOffset, int cellsNum, float openingAngle, float thickness) : TableUIBase(angle, distanceOffset) {
+	int gaps = cellsNum - 1;
+	float totalCellOpeningAngle = openingAngle - ((float)gaps) * gapAngle;
+	float cellOpeningAngle = totalCellOpeningAngle / ((float)cellsNum);
+
+	for (int i = 0; i <= cellsNum - 1; i++) {
+		cells.insert(new TableCell(angle + (((float)i) * cellOpeningAngle) + (((float)i) * gapAngle), distanceOffset, cellOpeningAngle, thickness, i));
+	}
+
+	for (auto cell : cells) {
+		registerEvent(cell->tapCell, &TableSequencer::tapCellSequencerCallback, this);
+	}
+
+}
+
+void TableSequencer::updateTransformationMatrix() {
+	for (auto cell : cells) {
+		cell->updatePosition(this->getX(), this->getY());
+	}
+}
+
+void TableSequencer::isHidden(bool is) {
+	for (auto cell : cells) {
+		cell->isHidden(is);
+	}
+}
+
+void TableSequencer::tapCellSequencerCallback(TableCell::tapCellArgs & a) {
+	cout << "cell tapped: " << a.id << endl;
+	(*beats)[a.id] = not((*beats)[a.id]);
+}

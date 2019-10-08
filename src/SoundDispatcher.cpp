@@ -4,7 +4,7 @@
 SoundDispatcher::SoundDispatcher() {
 	SoundEngine::I().getEngine().sequencer.init(2, 4, 120);
 
-	auto & kick0 = SoundEngine::I().getEngine().sequencer.sections[0].sequence(0);
+	/*auto & kick0 = SoundEngine::I().getEngine().sequencer.sections[0].sequence(0);
 	kick0.begin();
 	kick0.delay(0.0).bang(1.0f);
 	kick0.delay(0.0+0.1).bang(0.0f);
@@ -15,8 +15,8 @@ SoundDispatcher::SoundDispatcher() {
 	kick0.delay(2.0 / 4.0 + 0.1).bang(0.0f);
 	kick0.delay(3.0f / 4.0).bang(0.6f);
 	kick0.delay(3.0 / 4.0 + 0.1).bang(0.0f);
-	kick0.end();
-	SoundEngine::I().getEngine().sequencer.sections[0].launch(0);
+	kick0.end();*/
+	
 
 
 	TableObjects.insert(std::make_pair(0, new Generator(0)));

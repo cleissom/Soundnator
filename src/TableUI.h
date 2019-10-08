@@ -104,4 +104,56 @@ private:
 	const float sliderWidth = 0.05f;
 };
 
+class TableCell : public TableUIBase {
+	struct commomTableCellArgs : public EventArgs
+	{
+		float id;
+	};
+
+public:
+	typedef commomTableCellArgs tapCellArgs;
+
+	ofEvent<tapCellArgs> tapCell;
+
+	TableCell(float angle = 0.0f, float distanceOffset = 0.075f, float openingAngle = 0.6f, float thickness = 0.025f, int id = 0);
+	void updateTransformationMatrix();
+	void isHidden(bool is);
+
+	void isSelected(bool is) { selected = is; };
+	void isActive(bool is) { active = is; };
+
+	void fingersTap(InputGestueTap::TapArgs & a);
+
+private:
+	int id;
+	FigureGraphic* base;
+	bool active = false;
+	bool selected = false;
+};
+
+class TableSequencer : public TableUIBase {
+	struct commomTableCellArgs : public EventArgs
+	{
+		float percentage;
+	};
+
+public:
+	typedef commomTableCellArgs tapCellArgs;
+
+	ofEvent<tapCellArgs> tapCell;
+
+	TableSequencer(float angle = 0.0f, float distanceOffset = 0.075f, int cellsNum = 5, float openingAngle = M_PI, float thickness = 0.025f);
+	void updateTransformationMatrix();
+	void isHidden(bool is);
+
+	void tapCellSequencerCallback(TableCell::tapCellArgs & a);
+
+	void setBeats(vector<bool>* beats) { this->beats = beats; }
+
+private:
+	set<TableCell*> cells;
+	const float gapAngle = 0.1f;
+	vector<bool>* beats;
+};
+
 #endif

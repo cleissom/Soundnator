@@ -285,9 +285,11 @@ void TableObject::setToScope(pdsp::Patchable& in) {
 Generator::Generator(int id, connectionType_t connection) : TableObject(id, connection) {
 	patch();
 	button = new TableButton(90.0f, 0.075f);
-	slider = new TableSlider();
+	slider = new TableSlider(237.0f, 0.1f);
 	registerEvent(button->TapButton, &Generator::Tap, this);
 	registerEvent(slider->updateSlider, &Generator::updateVolume, this);
+
+	
 }
 
 void Generator::update() {
@@ -315,6 +317,12 @@ void Generator::update() {
 	}
 }
 
+
+class Scale : public pdsp::Unit {
+	Scale() {};
+
+};
+
 void Generator::patch() {
 
 	//patchinga
@@ -324,12 +332,13 @@ void Generator::patch() {
 	trig_in >> env.in_trig();
 	//1.0f >> env.in_trig();
 	pitch_ctrl >> osc.in_pitch();
+	pitch_in >> osc.in_pitch();
 	pitch_ctrl.enableSmoothing(50.0f);
 
 	//1.0f >> ampEnv.in_mod();
 
 	amp.set(1.0f);
-	trig_in.set(1.0f);
+	//trig_in.set(1.0f);
 	ampEnv.set(1.0f);
 
 	this->setToScope(amp);
@@ -410,16 +419,51 @@ bool Effect::objectIsConnectableToOutput() {
 
 Controller::Controller(int id, connectionType_t connection) : TableObject(id, connection) {
 	patch();
+	
+
+	beats = vector<bool>(beatsNum, false);
+
+	auto & kick0 = SoundEngine::I().getEngine().sequencer.sections[0].sequence(0);
+
+	kick0.code = [&] {
+		kick0.begin();
+
+		cout << "beat: " << beats[0] << endl;
+
+		for (int i = 0; i <= 16-1; i++) {
+			kick0.delay(i / ((float)16));
+			kick0.out(0).bang(beats[i] ? 1.0f : 0.0f);
+			kick0.delay((i + 0.2f) / ((float)16)).out(0).bang(0.0f);
+		}
+
+		kick0.end();
+	};
+	SoundEngine::I().getEngine().sequencer.sections[0].launch(0);
+
+
+	tableSequencer = new TableSequencer(0.0f, 0.075f, beatsNum, 5.7f);
+	tableSequencer->setBeats(&beats);
 }
 
 
 
 void Controller::patch() {
 	pitch_ctrl >> osc;
-	osc.out_pulse() >> amp >> trig_out;
-	//SoundEngine::I().getEngine().sequencer.sections[0].out_trig(0) >> amp >> trig_out;
+	//osc.out_pulse() >> amp >> trig_out;
+	SoundEngine::I().getEngine().sequencer.sections[0].out_trig(0) >> trig_out;
+	//SoundEngine::I().getEngine().sequencer.sections[0].out_value(1) >> pitch_out;
 	this->setToScope(amp);
 	amp.set(1.0f);
+}
+
+void Controller::update() {
+	if (getDirectObject()) {
+		tableSequencer->updatePosition(this->getDirectObject()->getX(), this->getDirectObject()->getY());
+		tableSequencer->isHidden(false);
+	}
+	else {
+		tableSequencer->isHidden(true);
+	}
 }
 
 void Controller::addCursor(InputGestureDirectFingers::newCursorArgs & a) {
