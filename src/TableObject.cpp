@@ -289,7 +289,7 @@ Generator::Generator(int id, connectionType_t connection) : TableObject(id, conn
 	registerEvent(button->TapButton, &Generator::Tap, this);
 	registerEvent(slider->updateSlider, &Generator::updateVolume, this);
 
-	
+
 }
 
 void Generator::update() {
@@ -326,8 +326,8 @@ class Scale : public pdsp::Unit {
 void Generator::patch() {
 
 	//patchinga
-	osc.out_pulse() >>	ampEnv;
-						ampEnv >> amp * dB(-12.0f) >> output;
+	osc.out_pulse() >> ampEnv;
+	ampEnv >> amp * dB(-12.0f) >> output;
 	//env.set(0.0f, 50.0f, 1.0f, 100.0f) >> ampEnv.in_mod();
 	trig_in >> env.in_trig();
 	//1.0f >> env.in_trig();
@@ -344,10 +344,10 @@ void Generator::patch() {
 	this->setToScope(amp);
 }
 
-static vector<float> akebono { 72.0f, 74.0f, 75.0f, 79.0f, 80.0f, 84.0f, 86.0f, 87.0f };
+static vector<float> akebono{ 72.0f, 74.0f, 75.0f, 79.0f, 80.0f, 84.0f, 86.0f, 87.0f };
 
 void Generator::updateAngleValue(float angle) {
-	pitch_ctrl.set(akebono[ofClamp(angle,0,akebono.size()-1)]);
+	pitch_ctrl.set(akebono[ofClamp(angle, 0, akebono.size() - 1)]);
 }
 
 bool Generator::objectIsConnectableTo(TableObject* obj) {
@@ -419,21 +419,21 @@ bool Effect::objectIsConnectableToOutput() {
 
 Controller::Controller(int id, connectionType_t connection) : TableObject(id, connection) {
 	patch();
-	
 
-	beats = vector<bool>(beatsNum, false);
+
+	beats = vector<bool>(beatsNum, true);
 
 	auto & kick0 = SoundEngine::I().getEngine().sequencer.sections[0].sequence(0);
 
 	kick0.code = [&] {
 		kick0.begin();
 
-		cout << "beat: " << beats[0] << endl;
+		int bars = kick0.bars;
 
-		for (int i = 0; i <= 16-1; i++) {
-			kick0.delay(i / ((float)16));
+		for (int i = 0; i <= 16 - 1; i++) {
+			kick0.delay((i*bars) / 16.0f);
 			kick0.out(0).bang(beats[i] ? 1.0f : 0.0f);
-			kick0.delay((i + 0.2f) / ((float)16)).out(0).bang(0.0f);
+			kick0.delay(((i*bars) + 0.2f) / 16.0f).out(0).bang(0.0f);
 		}
 
 		kick0.end();
@@ -441,8 +441,11 @@ Controller::Controller(int id, connectionType_t connection) : TableObject(id, co
 	SoundEngine::I().getEngine().sequencer.sections[0].launch(0);
 
 
-	tableSequencer = new TableSequencer(0.0f, 0.075f, beatsNum, 5.7f);
+	tableSequencer = new TableSequencer(0.0f, 0.075f, beatsNum, 320.0f, true);
+	tableSequencer->updateSequencerCells(beats);
 	tableSequencer->setBeats(&beats);
+
+	registerEvent(tableSequencer->tapSequencer, &Controller::tapSequencer, this);
 }
 
 
@@ -470,8 +473,7 @@ void Controller::addCursor(InputGestureDirectFingers::newCursorArgs & a) {
 }
 
 void Controller::updateAngleValue(float angle) {
-	float pitch = ofMap(angle, 0, 5.0f * M_2PI, 0.0f, 36.0f);
-	pitch_ctrl.set(pitch);
+	SoundEngine::I().getEngine().sequencer.sections[0].sequence(0).bars = (int)ofClamp(angle, 1, 2);
 }
 
 bool Controller::objectIsConnectableTo(TableObject* obj) {
@@ -482,6 +484,10 @@ bool Controller::objectIsConnectableToOutput() {
 	return false;
 }
 
+void Controller::tapSequencer(TableSequencer::tapSequencerArgs & a) {
+	cout << "Tap on: " << a.id << endl;
+	beats[a.id] = a.state;
+}
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -107,7 +107,8 @@ private:
 class TableCell : public TableUIBase {
 	struct commomTableCellArgs : public EventArgs
 	{
-		float id;
+		int id;
+		bool selected;
 	};
 
 public:
@@ -115,7 +116,7 @@ public:
 
 	ofEvent<tapCellArgs> tapCell;
 
-	TableCell(float angle = 0.0f, float distanceOffset = 0.075f, float openingAngle = 0.6f, float thickness = 0.025f, int id = 0);
+	TableCell(float angle = 0.0f, float distanceOffset = 0.075f, float openingAngle = 90, float thickness = 0.025f, bool clockwise = false, int id = 0);
 	void updateTransformationMatrix();
 	void isHidden(bool is);
 
@@ -129,20 +130,24 @@ private:
 	FigureGraphic* base;
 	bool active = false;
 	bool selected = false;
+	float openingAngle;
+	bool clockwise;
 };
 
+
 class TableSequencer : public TableUIBase {
-	struct commomTableCellArgs : public EventArgs
+	struct commomTableSequencerArgs : public EventArgs
 	{
-		float percentage;
+		int id;
+		bool state;
 	};
 
 public:
-	typedef commomTableCellArgs tapCellArgs;
+	typedef commomTableSequencerArgs tapSequencerArgs;
 
-	ofEvent<tapCellArgs> tapCell;
+	ofEvent<tapSequencerArgs> tapSequencer;
 
-	TableSequencer(float angle = 0.0f, float distanceOffset = 0.075f, int cellsNum = 5, float openingAngle = M_PI, float thickness = 0.025f);
+	TableSequencer(float angle = 0.0f, float distanceOffset = 0.075f, int cellsNum = 5, float openingAngle = 180, bool clockwise = false, float thickness = 0.03f);
 	void updateTransformationMatrix();
 	void isHidden(bool is);
 
@@ -150,10 +155,12 @@ public:
 
 	void setBeats(vector<bool>* beats) { this->beats = beats; }
 
+	void updateSequencerCells(vector<bool>& vec);
+
 private:
-	set<TableCell*> cells;
-	const float gapAngle = 0.1f;
+	vector<TableCell*> cells;
 	vector<bool>* beats;
+	const float gapAngle = 4.0f;
 };
 
 #endif

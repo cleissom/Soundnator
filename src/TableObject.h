@@ -164,6 +164,8 @@ public:
 	bool objectIsConnectableTo(TableObject* obj);
 	bool objectIsConnectableToOutput();
 
+	void tapSequencer(TableSequencer::tapSequencerArgs & a);
+
 
 private:
 	pdsp::Amp           amp;

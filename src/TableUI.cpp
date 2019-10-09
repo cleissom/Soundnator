@@ -85,7 +85,7 @@ TableSlider::TableSlider(float angle, float distanceOffset, float sliderSize, fl
 
 	Figures::Polygon* polygon = new Figures::Polygon();
 
-	polygon->AddVertex(ofPoint(-(sliderWidth/2.0f), 0.0f));
+	polygon->AddVertex(ofPoint(-(sliderWidth / 2.0f), 0.0f));
 	polygon->AddVertex(ofPoint((sliderWidth / 2.0f), 0.0f));
 	polygon->AddVertex(ofPoint((sliderWidth / 2.0f), sliderLineHeight));
 	polygon->AddVertex(ofPoint(-(sliderWidth / 2.0f), sliderLineHeight));
@@ -129,7 +129,7 @@ void TableSlider::updateTransformationMatrix() {
 	M.glRotate(this->getAngle(), 0, 0, 1);
 	M.glTranslate(this->getDistanceOffset(), 0.0f, 0.0f);
 
-	
+
 	float halfSize = scaledHeight / 2.0f;
 
 	if (invertY) {
@@ -152,7 +152,7 @@ void TableSlider::updateTransformationMatrix() {
 	sliderCircle->transformation = M;
 }
 
-void TableSlider::isHidden(bool is){
+void TableSlider::isHidden(bool is) {
 	sliderLine->isHidden(is);
 	sliderCircle->isHidden(is);
 }
@@ -183,17 +183,17 @@ void TableSlider::fingersTap(InputGestueTap::TapArgs& a) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TableCell::TableCell(float angle, float distanceOffset, float openingAngle, float thickness, int id) : TableUIBase(angle, distanceOffset), id(id) {
+TableCell::TableCell(float angle, float distanceOffset, float openingAngle, float thickness, bool clockwise, int id) : TableUIBase(angle, distanceOffset), openingAngle(openingAngle), clockwise(clockwise), id(id) {
 	Figures::Polygon* polygon = new Figures::Polygon();
 
 	// inner arc
-	float step_value = M_PI / 60.0f;
-	for (float i = 0.0f; i < openingAngle; i += step_value) {
+	float step_value = M_PI / 80.0f;
+	for (float i = 0.0f; i < ofDegToRad(openingAngle); i += step_value) {
 		polygon->AddVertex(ofPoint(distanceOffset*cos(i), distanceOffset*sin(i)));
 	}
 
 	// outer arc
-	for (float i = openingAngle; i > 0.0f; i -= step_value) {
+	for (float i = ofDegToRad(openingAngle); i > 0.0f; i -= step_value) {
 		polygon->AddVertex(ofPoint((distanceOffset + thickness)*cos(i), (distanceOffset + thickness)*sin(i)));
 	}
 
@@ -201,7 +201,7 @@ TableCell::TableCell(float angle, float distanceOffset, float openingAngle, floa
 	this->registerFingerEvents(base);
 	base->isHidden(true);
 	base->hasAlpha(true);
-	
+
 
 	updatePosition(0, 0);
 };
@@ -210,10 +210,14 @@ void TableCell::updateTransformationMatrix() {
 	ofMatrix4x4 M;
 	M.makeIdentityMatrix();
 	M.glTranslate(this->getX(), this->getY(), 0);
-	M.glRotateRad(this->getAngle(), 0, 0, 1);
+	M.glRotate(this->getAngle(), 0, 0, 1);
+
+	if (clockwise) {
+		M.glRotate(-openingAngle, 0, 0, 1);
+	}
 	base->transformation = M;
 
-	
+
 	if (active) {
 		base->color.r = 255;
 		base->color.b = 0;
@@ -239,22 +243,30 @@ void TableCell::isHidden(bool is) {
 }
 
 void TableCell::fingersTap(InputGestueTap::TapArgs & a) {
-	cout << "Tap in da cell" << endl;
 	this->selected = not(selected);
 	tapCellArgs args;
 	args.id = this->id;
+	args.selected = this->selected;
 	ofNotifyEvent(tapCell, args);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TableSequencer::TableSequencer(float angle, float distanceOffset, int cellsNum, float openingAngle, float thickness) : TableUIBase(angle, distanceOffset) {
+TableSequencer::TableSequencer(float angle, float distanceOffset, int cellsNum, float openingAngle, bool clockwise, float thickness) : TableUIBase(angle, distanceOffset) {
 	int gaps = cellsNum - 1;
-	float totalCellOpeningAngle = openingAngle - ((float)gaps) * gapAngle;
+	float totalCellOpeningAngle = openingAngle - (float(gaps)) * gapAngle;
 	float cellOpeningAngle = totalCellOpeningAngle / ((float)cellsNum);
 
+	float cellAngle;
+
 	for (int i = 0; i <= cellsNum - 1; i++) {
-		cells.insert(new TableCell(angle + (((float)i) * cellOpeningAngle) + (((float)i) * gapAngle), distanceOffset, cellOpeningAngle, thickness, i));
+		if (clockwise) {
+			cellAngle = ofWrapDegrees(angle - ((float(i) * cellOpeningAngle) + (float(i) * gapAngle)));
+		}
+		else {
+			cellAngle = ofWrapDegrees(angle + ((float(i) * cellOpeningAngle) + (float(i) * gapAngle)));
+		}
+		cells.push_back(new TableCell(cellAngle, distanceOffset, cellOpeningAngle, thickness, clockwise, i));
 	}
 
 	for (auto cell : cells) {
@@ -275,7 +287,15 @@ void TableSequencer::isHidden(bool is) {
 	}
 }
 
+void TableSequencer::updateSequencerCells(vector<bool>& vec) {
+	for (size_t i = 0; i < cells.size(); i++) {
+		cells[i]->isSelected(vec[i]);
+	}
+}
+
 void TableSequencer::tapCellSequencerCallback(TableCell::tapCellArgs & a) {
-	cout << "cell tapped: " << a.id << endl;
-	(*beats)[a.id] = not((*beats)[a.id]);
+	tapSequencerArgs args;
+	args.id = a.id;
+	args.state = a.selected;
+	ofNotifyEvent(tapSequencer, args);
 }
