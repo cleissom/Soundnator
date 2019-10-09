@@ -154,7 +154,7 @@ class Controller : public TableObject {
 
 public:
 
-	Controller(int id = -1, connectionType_t connection = CONTROL);
+	Controller(int id = -1, int sequencerSection = 0, connectionType_t connection = CONTROL);
 	Controller(const Controller  & other) { patch(); } // you need this to use std::vector with your class, otherwise will not compile
 
 	void patch();
@@ -166,6 +166,10 @@ public:
 
 	void tapSequencer(TableSequencer::tapSequencerArgs & a);
 
+	void tapButton(TableButton::TapButtonArgs & a);
+
+	void updateSlider(TableSlider::updateSliderArgs & a);
+
 
 private:
 	pdsp::Amp           amp;
@@ -175,6 +179,14 @@ private:
 	vector<bool> beats;
 	TableSequencer* tableSequencer;
 	int beatsNum = 16;
+	TableButton*  button;
+	TableSlider*  slider;
+
+	bool showSlider = false;
+	int actualSequence;
+
+	int sequencerSection;
+
 };
 
 

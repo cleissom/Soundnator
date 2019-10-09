@@ -359,8 +359,8 @@ bool Generator::objectIsConnectableToOutput() {
 }
 
 void Generator::updateVolume(TableSlider::updateSliderArgs& a) {
-	cout << "update volume to: " << (a.percentage / 100.0f) << endl;
-	amp.set(a.percentage / 100.0f);
+	cout << "update volume to: " << (a.value / 100.0f) << endl;
+	amp.set(a.value / 100.0f);
 }
 
 
@@ -417,28 +417,34 @@ bool Effect::objectIsConnectableToOutput() {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Controller::Controller(int id, connectionType_t connection) : TableObject(id, connection) {
+Controller::Controller(int id, int sequencerSection, connectionType_t connection) : TableObject(id, connection),  sequencerSection(sequencerSection) {
 	patch();
 
 
 	beats = vector<bool>(beatsNum, true);
 
-	auto & kick0 = SoundEngine::I().getEngine().sequencer.sections[0].sequence(0);
 
-	kick0.code = [&] {
-		kick0.begin();
+	actualSequence = 0;
 
-		int bars = kick0.bars;
+	auto& seq = SoundEngine::I().getEngine().sequencer.sections[sequencerSection].sequence(0);
+
+	seq.code = [&] {
+		seq.begin();
+
+		int bars = seq.bars;
 
 		for (int i = 0; i <= 16 - 1; i++) {
-			kick0.delay((i*bars) / 16.0f);
-			kick0.out(0).bang(beats[i] ? 1.0f : 0.0f);
-			kick0.delay(((i*bars) + 0.2f) / 16.0f).out(0).bang(0.0f);
+			seq.delay((i*bars) / 16.0f);
+			seq.out(0).bang(beats[i] ? 1.0f : 0.0f);
+			seq.delay(((i*bars) + 0.2f) / 16.0f).out(0).bang(0.0f);
 		}
 
-		kick0.end();
+		seq.end();
 	};
-	SoundEngine::I().getEngine().sequencer.sections[0].launch(0);
+
+	SoundEngine::I().getEngine().sequencer.sections[sequencerSection].sequence(0).bars = 4.0f;
+
+	SoundEngine::I().getEngine().sequencer.sections[sequencerSection].launch(0);
 
 
 	tableSequencer = new TableSequencer(0.0f, 0.075f, beatsNum, 320.0f, true);
@@ -446,6 +452,11 @@ Controller::Controller(int id, connectionType_t connection) : TableObject(id, co
 	tableSequencer->setBeats(&beats);
 
 	registerEvent(tableSequencer->tapSequencer, &Controller::tapSequencer, this);
+
+	button = new TableButton(20.0f, 0.09f);
+	slider = new TableSlider(-90.0f, 0.15f, true, 2.0f);
+	registerEvent(button->TapButton, &Controller::tapButton, this);
+	registerEvent(slider->updateSlider, &Controller::updateSlider, this);
 }
 
 
@@ -453,7 +464,7 @@ Controller::Controller(int id, connectionType_t connection) : TableObject(id, co
 void Controller::patch() {
 	pitch_ctrl >> osc;
 	//osc.out_pulse() >> amp >> trig_out;
-	SoundEngine::I().getEngine().sequencer.sections[0].out_trig(0) >> trig_out;
+	SoundEngine::I().getEngine().sequencer.sections[sequencerSection].out_trig(0) >> trig_out;
 	//SoundEngine::I().getEngine().sequencer.sections[0].out_value(1) >> pitch_out;
 	this->setToScope(amp);
 	amp.set(1.0f);
@@ -462,10 +473,24 @@ void Controller::patch() {
 void Controller::update() {
 	if (getDirectObject()) {
 		tableSequencer->updatePosition(this->getDirectObject()->getX(), this->getDirectObject()->getY());
+		button->updatePosition(this->getDirectObject()->getX(), this->getDirectObject()->getY());
 		tableSequencer->isHidden(false);
+		button->isHidden(false);
+		
+		if (showSlider) {
+			slider->updatePosition(this->getDirectObject()->getX(), this->getDirectObject()->getY());
+			slider->isHidden(false);
+		}
+		else {
+			slider->isHidden(true);
+		}
+
+
 	}
 	else {
 		tableSequencer->isHidden(true);
+		button->isHidden(true);
+		slider->isHidden(true);
 	}
 }
 
@@ -473,11 +498,12 @@ void Controller::addCursor(InputGestureDirectFingers::newCursorArgs & a) {
 }
 
 void Controller::updateAngleValue(float angle) {
-	SoundEngine::I().getEngine().sequencer.sections[0].sequence(0).bars = (int)ofClamp(angle, 1, 2);
+	//SoundEngine::I().getEngine().sequencer.sections[0].sequence(0).bars = (int)ofClamp(angle, 1, 4);
 }
 
 bool Controller::objectIsConnectableTo(TableObject* obj) {
-	return isObject<Generator>(obj) || isObject<Effect>(obj);
+	//return isObject<Generator>(obj) || isObject<Effect>(obj);
+	return isObject<Generator>(obj);
 }
 
 bool Controller::objectIsConnectableToOutput() {
@@ -489,6 +515,14 @@ void Controller::tapSequencer(TableSequencer::tapSequencerArgs & a) {
 	beats[a.id] = a.state;
 }
 
+void Controller::tapButton(TableButton::TapButtonArgs & a) {
+	showSlider = not(showSlider);
+}
+
+void Controller::updateSlider(TableSlider::updateSliderArgs & a) {
+	float bars = float(1 << int(a.value));
+	SoundEngine::I().getEngine().sequencer.sections[0].sequence(0).bars = bars;
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

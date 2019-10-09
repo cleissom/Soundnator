@@ -72,7 +72,7 @@ private:
 class TableSlider : public TableUIBase {
 	struct commomTableSliderArgs : public EventArgs
 	{
-		float percentage;
+		float value;
 	};
 
 public:
@@ -80,7 +80,7 @@ public:
 
 	ofEvent<updateSliderArgs> updateSlider;
 
-	TableSlider(float angle = 0.0f, float distanceOffset = 0.075f, float sliderSize = 1.0f, float circleSize = 1.0f, bool invertY = false, float startingPercentage = 100.0f);
+	TableSlider(float angle = 0.0f, float distanceOffset = 0.075f, bool discreteSlider = false, float sliderMaxValue = 100.0f, float sliderSize = 1.0f, float circleSize = 1.0f, bool invertY = false);
 	void updateTransformationMatrix();
 	void isHidden(bool is);
 	void draw();
@@ -96,9 +96,11 @@ private:
 	float sliderSize;
 	float circleSize;
 	bool invertY;
-	float lastPercentage;
 	float scaledHeight;
 	ofVec3f basePoint;
+	float lastValue;
+	float sliderMaxValue;
+	bool discreteSlider;
 
 	const float sliderLineHeight = 0.1f;
 	const float sliderWidth = 0.05f;
@@ -147,7 +149,7 @@ public:
 
 	ofEvent<tapSequencerArgs> tapSequencer;
 
-	TableSequencer(float angle = 0.0f, float distanceOffset = 0.075f, int cellsNum = 5, float openingAngle = 180, bool clockwise = false, float thickness = 0.03f);
+	TableSequencer(float angle = 0.0f, float distanceOffset = 0.075f, int cellsNum = 5, float openingAngle = 180, bool clockwise = false, float thickness = 0.04f);
 	void updateTransformationMatrix();
 	void isHidden(bool is);
 

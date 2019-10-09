@@ -80,7 +80,7 @@ void TableButton::isHidden(bool is) {
 
 
 
-TableSlider::TableSlider(float angle, float distanceOffset, float sliderSize, float circleSize, bool invertY, float startingPercentage) : TableUIBase(angle, distanceOffset), sliderSize(sliderSize), circleSize(circleSize), invertY(invertY), lastPercentage(startingPercentage) {
+TableSlider::TableSlider(float angle, float distanceOffset, bool discreteSlider, float sliderMaxValue, float sliderSize, float circleSize, bool invertY) : TableUIBase(angle, distanceOffset), discreteSlider(discreteSlider), sliderMaxValue(sliderMaxValue), sliderSize(sliderSize), circleSize(circleSize), invertY(invertY), lastValue(sliderMaxValue) {
 	scaledHeight = sliderSize * sliderLineHeight;
 
 	Figures::Polygon* polygon = new Figures::Polygon();
@@ -147,7 +147,7 @@ void TableSlider::updateTransformationMatrix() {
 	sliderLine->transformation = M;
 
 
-	M.glTranslate(0, scaledHeight * (lastPercentage / 100.0f), 0);
+	M.glTranslate(0, scaledHeight * (lastValue / sliderMaxValue), 0);
 	M.glScale(circleSize * 0.01f, circleSize * 0.01f, 1);
 	sliderCircle->transformation = M;
 }
@@ -164,16 +164,21 @@ void TableSlider::fingersEnter(InputGestureDirectFingers::enterCursorArgs& a) {
 	cout << "fingers enter slider" << endl;
 };
 void TableSlider::fingersUpdate(InputGestureDirectFingers::updateCursorArgs& a) {
-	cout << "fingers update slider" << endl;
-	float percentage = ((a.finger->getDistance(basePoint.x, basePoint.y)) / scaledHeight)*100.0f;
+	float percentage = ((a.finger->getDistance(basePoint.x, basePoint.y)) / scaledHeight);
+	float percentageValue = percentage * sliderMaxValue;
 
-	cout << "fingers update: " << percentage << endl;
+	if (discreteSlider) {
+		percentageValue = round(percentageValue);
+	}
+
+
+	cout << "fingers update: " << percentageValue << endl;
 
 	updateSliderArgs args;
-	args.percentage = percentage;
+	args.value = percentageValue;
 	ofNotifyEvent(updateSlider, args);
 
-	lastPercentage = percentage;
+	lastValue = percentageValue;
 };
 
 void TableSlider::fingersTap(InputGestueTap::TapArgs& a) {
