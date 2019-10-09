@@ -10,6 +10,7 @@ class SoundEngineBase
 public:
 	SoundEngineBase() {};
 	pdsp::Engine& getEngine() { return engine; };
+	pdsp::SequencerSection& getSection(int section) { return engine.sequencer.sections[section]; };
 	~SoundEngineBase() {};
 };
 

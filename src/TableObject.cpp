@@ -420,31 +420,29 @@ bool Effect::objectIsConnectableToOutput() {
 Controller::Controller(int id, int sequencerSection, connectionType_t connection) : TableObject(id, connection),  sequencerSection(sequencerSection) {
 	patch();
 
-
-	beats = vector<bool>(beatsNum, true);
-
+	beats = vector<bool>(beatsNum, false);
 
 	actualSequence = 0;
 
-	auto& seq = SoundEngine::I().getEngine().sequencer.sections[sequencerSection].sequence(0);
+	auto& sec = SoundEngine::I().getSection(sequencerSection).sequence(0);
 
-	seq.code = [&] {
-		seq.begin();
+	sec.code = [&] {
+		sec.begin();
 
-		int bars = seq.bars;
+		int bars = sec.bars;
 
 		for (int i = 0; i <= 16 - 1; i++) {
-			seq.delay((i*bars) / 16.0f);
-			seq.out(0).bang(beats[i] ? 1.0f : 0.0f);
-			seq.delay(((i*bars) + 0.2f) / 16.0f).out(0).bang(0.0f);
+			sec.delay((i*bars) / 16.0f);
+			sec.out(0).bang(beats[i] ? 1.0f : 0.0f);
+			sec.delay(((i*bars) + 0.2f) / 16.0f).out(0).bang(0.0f);
 		}
 
-		seq.end();
+		sec.end();
 	};
 
-	SoundEngine::I().getEngine().sequencer.sections[sequencerSection].sequence(0).bars = 4.0f;
+	SoundEngine::I().getSection(sequencerSection).sequence(0).bars = 4.0f;
 
-	SoundEngine::I().getEngine().sequencer.sections[sequencerSection].launch(0);
+	SoundEngine::I().getSection(sequencerSection).launch(0);
 
 
 	tableSequencer = new TableSequencer(0.0f, 0.075f, beatsNum, 320.0f, true);
@@ -464,7 +462,7 @@ Controller::Controller(int id, int sequencerSection, connectionType_t connection
 void Controller::patch() {
 	pitch_ctrl >> osc;
 	//osc.out_pulse() >> amp >> trig_out;
-	SoundEngine::I().getEngine().sequencer.sections[sequencerSection].out_trig(0) >> trig_out;
+	SoundEngine::I().getSection(sequencerSection).out_trig(0) >> trig_out;
 	//SoundEngine::I().getEngine().sequencer.sections[0].out_value(1) >> pitch_out;
 	this->setToScope(amp);
 	amp.set(1.0f);
@@ -521,7 +519,7 @@ void Controller::tapButton(TableButton::TapButtonArgs & a) {
 
 void Controller::updateSlider(TableSlider::updateSliderArgs & a) {
 	float bars = float(1 << int(a.value));
-	SoundEngine::I().getEngine().sequencer.sections[0].sequence(0).bars = bars;
+	SoundEngine::I().getSection(sequencerSection).sequence(0).bars = bars;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
