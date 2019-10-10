@@ -72,6 +72,8 @@ public:
 	float getAngleTo(TableObject* obj);
 	void setToScope(pdsp::Patchable& in);
 
+	void updateTableUI(TableUIBase * ui, bool conditional = true);
+
 protected:
 	pdsp::PatchNode     input;
 	pdsp::PatchNode     output;

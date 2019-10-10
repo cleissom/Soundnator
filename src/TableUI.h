@@ -162,7 +162,7 @@ public:
 private:
 	vector<TableCell*> cells;
 	vector<bool>* beats;
-	const float gapAngle = 4.0f;
+	const float gapAngle = 2.0f;
 };
 
 #endif

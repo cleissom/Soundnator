@@ -280,6 +280,21 @@ void TableObject::setToScope(pdsp::Patchable& in) {
 	in >> scope >> SoundEngine::I().getEngine().blackhole();
 }
 
+void TableObject::updateTableUI(TableUIBase* ui, bool conditional) {
+	if (this->getDirectObject()) {
+		if (conditional) {
+			ui->updatePosition(this->getDirectObject()->getX(), this->getDirectObject()->getY());
+			ui->isHidden(false);
+		}
+		else {
+			ui->isHidden(true);
+		}
+	}
+	else {
+		ui->isHidden(true);
+	}
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Generator::Generator(int id, connectionType_t connection) : TableObject(id, connection) {
@@ -293,16 +308,8 @@ Generator::Generator(int id, connectionType_t connection) : TableObject(id, conn
 }
 
 void Generator::update() {
-	if (getDirectObject()) {
-		button->updatePosition(this->getDirectObject()->getX(), this->getDirectObject()->getY());
-		slider->updatePosition(this->getDirectObject()->getX(), this->getDirectObject()->getY());
-		button->isHidden(false);
-		slider->isHidden(false);
-	}
-	else {
-		button->isHidden(true);
-		slider->isHidden(true);
-	}
+	updateTableUI(button);
+	updateTableUI(slider);
 
 	if (connectionUpdated) {
 		if (*getPrecedingObj(this, CONTROL)) {
@@ -424,20 +431,20 @@ Controller::Controller(int id, int sequencerSection, connectionType_t connection
 
 	actualSequence = 0;
 
-	auto& sec = SoundEngine::I().getSection(sequencerSection).sequence(0);
+	auto& sequence = SoundEngine::I().getSection(sequencerSection).sequence(0);
 
-	sec.code = [&] {
-		sec.begin();
+	sequence.code = [&] {
+		sequence.begin();
 
-		int bars = sec.bars;
+		int bars = sequence.bars;
 
 		for (int i = 0; i <= 16 - 1; i++) {
-			sec.delay((i*bars) / 16.0f);
-			sec.out(0).bang(beats[i] ? 1.0f : 0.0f);
-			sec.delay(((i*bars) + 0.2f) / 16.0f).out(0).bang(0.0f);
+			sequence.delay((i*bars) / 16.0f);
+			sequence.out(0).bang(beats[i] ? 1.0f : 0.0f);
+			sequence.delay(((i*bars) + 0.2f) / 16.0f).out(0).bang(0.0f);
 		}
 
-		sec.end();
+		sequence.end();
 	};
 
 	SoundEngine::I().getSection(sequencerSection).sequence(0).bars = 4.0f;
@@ -469,27 +476,9 @@ void Controller::patch() {
 }
 
 void Controller::update() {
-	if (getDirectObject()) {
-		tableSequencer->updatePosition(this->getDirectObject()->getX(), this->getDirectObject()->getY());
-		button->updatePosition(this->getDirectObject()->getX(), this->getDirectObject()->getY());
-		tableSequencer->isHidden(false);
-		button->isHidden(false);
-		
-		if (showSlider) {
-			slider->updatePosition(this->getDirectObject()->getX(), this->getDirectObject()->getY());
-			slider->isHidden(false);
-		}
-		else {
-			slider->isHidden(true);
-		}
-
-
-	}
-	else {
-		tableSequencer->isHidden(true);
-		button->isHidden(true);
-		slider->isHidden(true);
-	}
+	updateTableUI(tableSequencer);
+	updateTableUI(button);
+	updateTableUI(slider, showSlider);
 }
 
 void Controller::addCursor(InputGestureDirectFingers::newCursorArgs & a) {
