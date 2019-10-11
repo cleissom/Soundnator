@@ -39,7 +39,7 @@ protected:
 };
 
 
-
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 class TableButton : public TableUIBase {
@@ -66,7 +66,7 @@ private:
 };
 
 
-
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 class TableSlider : public TableUIBase {
@@ -80,7 +80,7 @@ public:
 
 	ofEvent<updateSliderArgs> updateSlider;
 
-	TableSlider(float angle = 0.0f, float distanceOffset = 0.075f, bool discreteSlider = false, float sliderMaxValue = 100.0f, float sliderSize = 1.0f, float circleSize = 1.0f, bool invertY = false);
+	TableSlider(float angle = 0.0f, float distanceOffset = 0.075f, bool discreteSlider = false, float sliderMaxValue = 100.0f, float sliderSize = 1.0f, float circleSize = 1.0f, bool invertY = false, bool tangent = true);
 	void updateTransformationMatrix();
 	void isHidden(bool is);
 	void draw();
@@ -93,18 +93,26 @@ private:
 	FigureGraphic* base;
 	FigureGraphic* sliderLine;
 	FigureGraphic* sliderCircle;
+
+	bool discreteSlider;
+	float sliderMaxValue;
 	float sliderSize;
 	float circleSize;
 	bool invertY;
+	bool tangent;
+
+	ofMatrix4x4 sliderBottom;
 	float scaledHeight;
 	ofVec3f basePoint;
 	float lastValue;
-	float sliderMaxValue;
-	bool discreteSlider;
+
+	
 
 	const float sliderLineHeight = 0.1f;
 	const float sliderWidth = 0.05f;
 };
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 class TableCell : public TableUIBase {
 	struct commomTableCellArgs : public EventArgs
@@ -136,6 +144,7 @@ private:
 	bool clockwise;
 };
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 class TableSequencer : public TableUIBase {
 	struct commomTableSequencerArgs : public EventArgs

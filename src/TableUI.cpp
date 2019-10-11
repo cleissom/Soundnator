@@ -80,7 +80,7 @@ void TableButton::isHidden(bool is) {
 
 
 
-TableSlider::TableSlider(float angle, float distanceOffset, bool discreteSlider, float sliderMaxValue, float sliderSize, float circleSize, bool invertY) : TableUIBase(angle, distanceOffset), discreteSlider(discreteSlider), sliderMaxValue(sliderMaxValue), sliderSize(sliderSize), circleSize(circleSize), invertY(invertY), lastValue(sliderMaxValue) {
+TableSlider::TableSlider(float angle, float distanceOffset, bool discreteSlider, float sliderMaxValue, float sliderSize, float circleSize, bool invertY, bool tangent) : TableUIBase(angle, distanceOffset), discreteSlider(discreteSlider), sliderMaxValue(sliderMaxValue), sliderSize(sliderSize), circleSize(circleSize), invertY(invertY), lastValue(sliderMaxValue), tangent(tangent) {
 	scaledHeight = sliderSize * sliderLineHeight;
 
 	Figures::Polygon* polygon = new Figures::Polygon();
@@ -118,6 +118,8 @@ TableSlider::TableSlider(float angle, float distanceOffset, bool discreteSlider,
 	sliderLine->hasAlpha(true);
 	sliderLine->isHidden(true);
 
+	
+
 	updatePosition(0, 0);
 };
 
@@ -129,6 +131,9 @@ void TableSlider::updateTransformationMatrix() {
 	M.glRotate(this->getAngle(), 0, 0, 1);
 	M.glTranslate(this->getDistanceOffset(), 0.0f, 0.0f);
 
+	if (!tangent) {
+		M.glRotate(-90.0f, 0, 0, 1);
+	}
 
 	float halfSize = scaledHeight / 2.0f;
 
@@ -142,9 +147,11 @@ void TableSlider::updateTransformationMatrix() {
 
 	basePoint = ofVec3f(0, 0, 0);
 	basePoint = basePoint * M;
+	sliderBottom = M;
 
 	base->transformation = M;
 	sliderLine->transformation = M;
+
 
 
 	M.glTranslate(0, scaledHeight * (lastValue / sliderMaxValue), 0);
@@ -158,6 +165,7 @@ void TableSlider::isHidden(bool is) {
 }
 
 void TableSlider::draw() {
+	
 }
 
 void TableSlider::fingersEnter(InputGestureDirectFingers::enterCursorArgs& a) {
