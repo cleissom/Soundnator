@@ -987,6 +987,9 @@
     <Filter Include="addons\ofxPDSP\libs\audiofft">
       <UniqueIdentifier>{8c67eac1-23bc-47f3-8345-252c59eec690}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Utils">
+      <UniqueIdentifier>{6d24f750-f0ab-493c-a68c-e3320a68c9f2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\addons\ofxOsc\src\ofxOsc.h">
@@ -4162,6 +4165,9 @@
     </ClInclude>
     <ClInclude Include="src\TableUI.h">
       <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Utils\Font.h">
+      <Filter>src\Utils</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

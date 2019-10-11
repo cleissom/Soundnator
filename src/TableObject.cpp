@@ -304,8 +304,8 @@ Generator::Generator(int id, connectionType_t connection) : TableObject(id, conn
 	registerEvent(button->TapButton, &Generator::Tap, this);
 	registerEvent(slider->updateSlider, &Generator::updateVolume, this);
 
-
 }
+
 
 void Generator::update() {
 	updateTableUI(button);
@@ -386,7 +386,6 @@ void Generator::Tap(TableButton::TapButtonArgs& a) {
 }
 
 void Generator::objectDraw() {
-
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -448,11 +447,12 @@ Controller::Controller(int id, int sequencerSection, connectionType_t connection
 	};
 
 	SoundEngine::I().getSection(sequencerSection).sequence(0).bars = 4.0f;
+	
 
 	SoundEngine::I().getSection(sequencerSection).launch(0);
 
 
-	tableSequencer = new TableSequencer(0.0f, 0.075f, beatsNum, 320.0f, true);
+	tableSequencer = new TableSequencer(0.0f, 0.065f, beatsNum, 320.0f, true);
 	tableSequencer->updateSequencerCells(beats);
 	tableSequencer->setBeats(&beats);
 
@@ -475,10 +475,13 @@ void Controller::patch() {
 	amp.set(1.0f);
 }
 
+
 void Controller::update() {
 	updateTableUI(tableSequencer);
 	updateTableUI(button);
 	updateTableUI(slider, showSlider);
+
+	tableSequencer->setActiveCell(int(ofMap(SoundEngine::I().getSection(sequencerSection).sequence(0).meter_percent(), 0, 0.95, 0, 15)));
 }
 
 void Controller::addCursor(InputGestureDirectFingers::newCursorArgs & a) {

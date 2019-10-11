@@ -15,6 +15,7 @@ void TableUIBase::registerFingerEvents(FigureGraphic* fg) {
 	fg->registerMyEvent(InputGestureDirectFingers::I().enterCursor, &TableUIBase::fingersEnter, this);
 	fg->registerMyEvent(InputGestureDirectFingers::I().updateCursor, &TableUIBase::fingersUpdate, this);
 	fg->registerMyEvent(InputGestureTap::I().Tap, &TableUIBase::fingersTap, this);
+	fg->registerMyEvent(InputGestureLongPush::I().LongPushTriger, &TableUIBase::fingersLongPush, this);
 };
 
 void TableUIBase::updatePosition(float x, float y) {
@@ -40,25 +41,44 @@ TableButton::TableButton(float angle, float distanceOffset, float size) : TableU
 
 	Figures::Polygon* polygon = new Figures::Polygon();
 	drawCircleOnPolygon(polygon);
+	polygon->SetTexture("1.png");
 	base = new FigureGraphic(polygon);
 	this->registerFingerEvents(base);
-	base->color.r = ofRandom(0, 255);
-	base->color.g = ofRandom(0, 255);
-	base->color.b = ofRandom(0, 255);
-	base->color.a = 100;
+	base->color.r = 255;
+	base->color.g = 255;
+	base->color.b = 255;
+	base->color.a = 200;
+	base->hasAlpha(true);
 	base->isHidden(true);
+	
+	polygon = new Figures::Polygon();
+	drawCircleOnPolygon(polygon);
+	border = new FigureGraphic(polygon);
+	border->color.r = 255;
+	border->color.g = 255;
+	border->color.b = 255;
+	border->color.a = 100;
+	border->hasAlpha(true);
+	border->canCollide(false);
+	border->isHidden(true);
+	border->setFill(false);
 
 	updatePosition(0, 0);
 };
 
 void TableButton::updateTransformationMatrix() {
 	/// local pivot -> direct order.  Rotate -> Translate -> Scale
-	base->transformation.makeIdentityMatrix();
+	ofMatrix4x4 M;
 
-	base->transformation.glTranslate(this->getX(), this->getY(), 0);
-	base->transformation.glRotate(this->getAngle(), 0, 0, 1);
-	base->transformation.glTranslate(this->getDistanceOffset(), 0.0f, 0.0f);
-	base->transformation.glScale(buttonSize * 0.01f, buttonSize * 0.01f, 1);
+	M.makeIdentityMatrix();
+	M.glTranslate(this->getX(), this->getY(), 0);
+	M.glRotate(this->getAngle(), 0, 0, 1);
+	M.glTranslate(this->getDistanceOffset(), 0.0f, 0.0f);
+	M.glScale(buttonSize * 0.01f, buttonSize * 0.01f, 1);
+	M.glRotate(-90, 0, 0, 1);
+
+	base->transformation = M;
+	border->transformation = M;
 }
 
 void TableButton::fingersEnter(InputGestureDirectFingers::enterCursorArgs& a) {
@@ -66,21 +86,28 @@ void TableButton::fingersEnter(InputGestureDirectFingers::enterCursorArgs& a) {
 };
 
 void TableButton::fingersTap(InputGestueTap::TapArgs& a) {
-	//cout << "tap" << endl;
+	cout << "tap" << endl;
 	commomTableButtonArgs args;
 	args.id = 1;
 	ofNotifyEvent(TapButton, args);
 };
 
+void TableButton::fingersLongPush(InputGestureLongPush::LongPushTrigerArgs& a) {
+	commomTableButtonArgs args;
+	args.id = 1;
+	ofNotifyEvent(LongPushButton, args);
+};
+
 void TableButton::isHidden(bool is) {
 	base->isHidden(is);
+	border->isHidden(is);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 
-TableSlider::TableSlider(float angle, float distanceOffset, bool discreteSlider, float sliderMaxValue, float sliderSize, float circleSize, bool invertY, bool tangent) : TableUIBase(angle, distanceOffset), discreteSlider(discreteSlider), sliderMaxValue(sliderMaxValue), sliderSize(sliderSize), circleSize(circleSize), invertY(invertY), lastValue(sliderMaxValue), tangent(tangent) {
+TableSlider::TableSlider(float angle, float distanceOffset, bool discreteSlider, float sliderMaxValue, float sliderSize, float circleSize, bool invertY, bool tangent, bool showTopText, string bottomText) : TableUIBase(angle, distanceOffset), discreteSlider(discreteSlider), sliderMaxValue(sliderMaxValue), sliderSize(sliderSize), circleSize(circleSize), invertY(invertY), lastValue(sliderMaxValue), tangent(tangent), showTopText(showTopText), bottomText(bottomText)  {
 	scaledHeight = sliderSize * sliderLineHeight;
 
 	Figures::Polygon* polygon = new Figures::Polygon();
@@ -117,6 +144,20 @@ TableSlider::TableSlider(float angle, float distanceOffset, bool discreteSlider,
 	sliderLine->canCollide(false);
 	sliderLine->hasAlpha(true);
 	sliderLine->isHidden(true);
+	
+	polygon = new Figures::Polygon();
+	polygon->AddVertex(ofPoint(-(linePolygonWidth / 2.0f), 0.0f));
+	polygon->AddVertex(ofPoint((linePolygonWidth / 2.0f), 0.0f));
+	polygon->AddVertex(ofPoint((linePolygonWidth / 2.0f), sliderLineHeight));
+	polygon->AddVertex(ofPoint(-(linePolygonWidth / 2.0f), sliderLineHeight));
+	sliderFillLine = new FigureGraphic(polygon);
+	sliderFillLine->color.r = 255;
+	sliderFillLine->color.g = 255;
+	sliderFillLine->color.b = 255;
+	sliderFillLine->color.a = 200;
+	sliderFillLine->canCollide(false);
+	sliderFillLine->hasAlpha(true);
+	sliderFillLine->isHidden(true);
 
 	
 
@@ -152,20 +193,42 @@ void TableSlider::updateTransformationMatrix() {
 	base->transformation = M;
 	sliderLine->transformation = M;
 
-
-
+	ofMatrix4x4 FillLineM = M;
+	FillLineM.glScale(1, (lastValue / sliderMaxValue), 1);
+	sliderFillLine->transformation = FillLineM;
+	
 	M.glTranslate(0, scaledHeight * (lastValue / sliderMaxValue), 0);
 	M.glScale(circleSize * 0.01f, circleSize * 0.01f, 1);
 	sliderCircle->transformation = M;
 }
 
 void TableSlider::isHidden(bool is) {
+	this->hidden = is;
 	sliderLine->isHidden(is);
+	sliderFillLine->isHidden(is);
 	sliderCircle->isHidden(is);
 }
 
 void TableSlider::draw() {
-	
+	if (!hidden) {
+		ofPushMatrix();
+
+		const float stringSpacing = 0.02f;
+
+		ofMultMatrix(sliderBottom);
+
+		if (showTopText) {
+			stringstream buffer;
+			buffer << int(-lastValue) << endl;
+			font.drawString(buffer.str(), true, 0, scaledHeight + stringSpacing);
+		}
+
+		if (!bottomText.empty()) {
+			font.drawString(bottomText, true, 0, -stringSpacing, true);
+		}
+
+		ofPopMatrix();
+	}
 }
 
 void TableSlider::fingersEnter(InputGestureDirectFingers::enterCursorArgs& a) {
@@ -233,9 +296,9 @@ void TableCell::updateTransformationMatrix() {
 
 	if (active) {
 		base->color.r = 255;
-		base->color.b = 0;
-		base->color.g = 0;
-		base->color.a = 150;
+		base->color.b = 100;
+		base->color.g = 100;
+		base->color.a = 200;
 	}
 	else if (selected) {
 		base->color.b = 255;
@@ -265,7 +328,7 @@ void TableCell::fingersTap(InputGestueTap::TapArgs & a) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TableSequencer::TableSequencer(float angle, float distanceOffset, int cellsNum, float openingAngle, bool clockwise, float thickness) : TableUIBase(angle, distanceOffset) {
+TableSequencer::TableSequencer(float angle, float distanceOffset, int cellsNum, float openingAngle, bool clockwise, float thickness) : TableUIBase(angle, distanceOffset), cellsNum(cellsNum) {
 	int gaps = cellsNum - 1;
 	float totalCellOpeningAngle = openingAngle - (float(gaps)) * gapAngle;
 	float cellOpeningAngle = totalCellOpeningAngle / ((float)cellsNum);
@@ -303,6 +366,12 @@ void TableSequencer::isHidden(bool is) {
 void TableSequencer::updateSequencerCells(vector<bool>& vec) {
 	for (size_t i = 0; i < cells.size(); i++) {
 		cells[i]->isSelected(vec[i]);
+	}
+}
+
+void TableSequencer::setActiveCell(int num) {
+	for (int i = 0; i <= cellsNum - 1; i++) {
+		cells[i]->isActive(i == num ? true : false);
 	}
 }
 

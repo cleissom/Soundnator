@@ -127,6 +127,7 @@ private:
 	pdsp::Amp           amp;
 	pdsp::VAOscillator  osc;
 	pdsp::ADSR			env;
+
 };
 
 

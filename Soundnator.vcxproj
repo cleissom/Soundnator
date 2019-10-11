@@ -100,61 +100,7 @@
       <PreprocessorDefinitions>%(PreprocessorDefinitions);_USE_MATH_DEFINES;PC;</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);src;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxOsc\src;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxOsc\libs\oscpack\src;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxOsc\libs\oscpack\src\ip;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxOsc\libs\oscpack\src\ip\posix;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxOsc\libs\oscpack\src\ip\win32;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxOsc\libs\oscpack\src\osc;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxXmlSettings\src;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxXmlSettings\libs;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofx2DFigures\src;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxGlobalConfig\src;libs/poco/include;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxTableGestures\src;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxTableGestures\src\Core;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxTableGestures\src\Feedback;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxTableGestures\src\Gestures;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxTableGestures\src\Gestures\Gestures;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxTableGestures\src\Gestures\Gestures-Extras;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxTableGestures\src\Gestures\tuio1.1;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxTableGestures\src\Render;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxTableGestures\src\Simulator;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxTableGestures\src\Utils;..\..\..\addons\ofxPoco\libs\poco\include;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxAudioFile\src;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxAudioFile\libs;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxMidi\src;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxMidi\src\desktop;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxMidi\src\ios;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxMidi\libs\pgmidi;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxMidi\libs\rtmidi;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\DSP;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\DSP\control;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\DSP\convolution;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\DSP\core;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\DSP\delays;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\DSP\dynamics;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\DSP\envelopes;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\DSP\envelopes\stages;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\DSP\filters;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\DSP\filters\biquads;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\DSP\helpers;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\DSP\oscillators;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\DSP\oscillators\antialiased;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\DSP\oscillators\antialiased\BLEP;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\DSP\oscillators\base;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\DSP\oscillators\cheap;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\DSP\oscillators\fm;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\DSP\oscillators\phasors;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\DSP\oscillators\wavetable;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\DSP\random;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\DSP\resamplers;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\DSP\samplers;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\DSP\samplers\grain;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\DSP\signal;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\DSP\utility;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\math;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\math\dsphelpers;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\math\fft;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\math\interpolation;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\math\random;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\math\simd;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\math\simd\core;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\math\simd\functions;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\math\simd\functions\mathfun;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\math\simd\kernels;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\math\simd\vectors;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\math\tables;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\math\trig;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\messages;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\modules;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\modules\dynamics;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\modules\effects;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\modules\equalizers;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\modules\filters;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\modules\oscillators;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\modules\reverbs;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\modules\samplers;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\modules\signal;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\modules\sources;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\ofx;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\ofx\helper;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\sequencer;
-C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\libs\audiofft</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);src;src\Utils;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxOsc\src;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxOsc\libs\oscpack\src;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxOsc\libs\oscpack\src\ip;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxOsc\libs\oscpack\src\ip\posix;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxOsc\libs\oscpack\src\ip\win32;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxOsc\libs\oscpack\src\osc;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxXmlSettings\src;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxXmlSettings\libs;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofx2DFigures\src;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxGlobalConfig\src;libs/poco/include;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxTableGestures\src;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxTableGestures\src\Core;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxTableGestures\src\Feedback;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxTableGestures\src\Gestures;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxTableGestures\src\Gestures\Gestures;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxTableGestures\src\Gestures\Gestures-Extras;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxTableGestures\src\Gestures\tuio1.1;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxTableGestures\src\Render;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxTableGestures\src\Simulator;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxTableGestures\src\Utils;..\..\..\addons\ofxPoco\libs\poco\include;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxAudioFile\src;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxAudioFile\libs;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxMidi\src;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxMidi\src\desktop;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxMidi\src\ios;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxMidi\libs\pgmidi;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxMidi\libs\rtmidi;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\DSP;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\DSP\control;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\DSP\convolution;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\DSP\core;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\DSP\delays;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\DSP\dynamics;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\DSP\envelopes;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\DSP\envelopes\stages;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\DSP\filters;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\DSP\filters\biquads;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\DSP\helpers;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\DSP\oscillators;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\DSP\oscillators\antialiased;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\DSP\oscillators\antialiased\BLEP;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\DSP\oscillators\base;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\DSP\oscillators\cheap;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\DSP\oscillators\fm;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\DSP\oscillators\phasors;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\DSP\oscillators\wavetable;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\DSP\random;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\DSP\resamplers;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\DSP\samplers;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\DSP\samplers\grain;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\DSP\signal;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\DSP\utility;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\math;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\math\dsphelpers;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\math\fft;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\math\interpolation;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\math\random;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\math\simd;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\math\simd\core;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\math\simd\functions;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\math\simd\functions\mathfun;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\math\simd\kernels;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\math\simd\vectors;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\math\tables;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\math\trig;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\messages;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\modules;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\modules\dynamics;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\modules\effects;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\modules\equalizers;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\modules\filters;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\modules\oscillators;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\modules\reverbs;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\modules\samplers;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\modules\signal;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\modules\sources;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\ofx;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\ofx\helper;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\src\sequencer;C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\libs\audiofft</AdditionalIncludeDirectories>
       <CompileAs>CompileAsCpp</CompileAs>
       <ObjectFileName>$(IntDir)</ObjectFileName>
     </ClCompile>
@@ -1671,6 +1617,7 @@ C:\Users\Cleissom\of_v0.10.1_vs2017_release\addons\ofxPDSP\libs\audiofft</Additi
     <ClInclude Include="src\SoundnatorApp.h" />
     <ClInclude Include="src\TableObject.h" />
     <ClInclude Include="src\TableUI.h" />
+    <ClInclude Include="src\Utils\Font.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(OF_ROOT)\libs\openFrameworksCompiled\project\vs\openframeworksLib.vcxproj">

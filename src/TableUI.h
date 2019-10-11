@@ -8,7 +8,9 @@
 #include "InputGestureDirectFingers.hpp"
 #include "InputGestureDirectObjects.hpp"
 #include "InputGestureTap.hpp"
+#include "InputGestureLongPush.hpp"
 
+#include "Font.h"
 
 class TableUIBase : public Graphic {
 
@@ -23,6 +25,7 @@ public:
 	virtual void fingersEnter(InputGestureDirectFingers::enterCursorArgs& a) {};
 	virtual void fingersUpdate(InputGestureDirectFingers::updateCursorArgs& a) {};
 	virtual void fingersTap(InputGestureTap::TapArgs& a) {};
+	virtual void fingersLongPush(InputGestureLongPush::LongPushTrigerArgs & a) {};
 
 	virtual void isHidden(bool) = 0;
 
@@ -43,15 +46,17 @@ protected:
 
 
 class TableButton : public TableUIBase {
+
+public:
 	struct commomTableButtonArgs : public EventArgs
 	{
 		int id;
 	};
-
-public:
 	typedef commomTableButtonArgs TapButtonArgs;
+	typedef commomTableButtonArgs LongPushButtonArgs;
 
-	ofEvent<TapButtonArgs> TapButton;
+	ofEvent<TapButtonArgs>		TapButton;
+	ofEvent<LongPushButtonArgs> LongPushButton;
 
 	TableButton(float angle = 0.0f, float distanceOffset = 0.05f, float size = 2.0f);
 	void updateTransformationMatrix();
@@ -59,9 +64,11 @@ public:
 
 	void fingersEnter(InputGestureDirectFingers::enterCursorArgs & a);
 	void fingersTap(InputGestureTap::TapArgs & a);
+	void fingersLongPush(InputGestureLongPush::LongPushTrigerArgs & a);
 
 private:
 	FigureGraphic* base;
+	FigureGraphic* border;
 	float buttonSize;
 };
 
@@ -80,7 +87,7 @@ public:
 
 	ofEvent<updateSliderArgs> updateSlider;
 
-	TableSlider(float angle = 0.0f, float distanceOffset = 0.075f, bool discreteSlider = false, float sliderMaxValue = 100.0f, float sliderSize = 1.0f, float circleSize = 1.0f, bool invertY = false, bool tangent = true);
+	TableSlider(float angle = 0.0f, float distanceOffset = 0.075f, bool discreteSlider = false, float sliderMaxValue = 100.0f, float sliderSize = 1.0f, float circleSize = 1.0f, bool invertY = false, bool tangent = true, bool showTopText = false, string bottomText = "");
 	void updateTransformationMatrix();
 	void isHidden(bool is);
 	void draw();
@@ -92,6 +99,7 @@ public:
 private:
 	FigureGraphic* base;
 	FigureGraphic* sliderLine;
+	FigureGraphic* sliderFillLine;
 	FigureGraphic* sliderCircle;
 
 	bool discreteSlider;
@@ -100,13 +108,16 @@ private:
 	float circleSize;
 	bool invertY;
 	bool tangent;
+	bool showTopText;
+	string bottomText;
 
+	bool hidden;
 	ofMatrix4x4 sliderBottom;
 	float scaledHeight;
 	ofVec3f basePoint;
 	float lastValue;
 
-	
+	Font font;
 
 	const float sliderLineHeight = 0.1f;
 	const float sliderWidth = 0.05f;
@@ -168,10 +179,21 @@ public:
 
 	void updateSequencerCells(vector<bool>& vec);
 
+	void setActiveCell(int num);
+
 private:
 	vector<TableCell*> cells;
 	vector<bool>* beats;
+
+	int cellsNum;
+
 	const float gapAngle = 2.0f;
+};
+
+
+class SequencerUI : Graphic {
+public:
+	SequencerUI();
 };
 
 #endif
