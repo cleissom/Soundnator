@@ -107,15 +107,15 @@ void TableButton::isHidden(bool is) {
 
 
 
-TableSlider::TableSlider(float angle, float distanceOffset, bool discreteSlider, float sliderMaxValue, float sliderSize, float circleSize, bool invertY, bool tangent, bool showTopText, string bottomText) : TableUIBase(angle, distanceOffset), discreteSlider(discreteSlider), sliderMaxValue(sliderMaxValue), sliderSize(sliderSize), circleSize(circleSize), invertY(invertY), lastValue(sliderMaxValue), tangent(tangent), showTopText(showTopText), bottomText(bottomText)  {
+TableSlider::TableSlider(float angle, float distanceOffset, bool discreteSlider, float sliderMaxValue, float sliderMinValue, int id, float sliderSize, float circleSize, bool invertY, bool tangent, bool showTopText, string bottomText) : TableUIBase(angle, distanceOffset), discreteSlider(discreteSlider), sliderMaxValue(sliderMaxValue), sliderMinValue(sliderMinValue), id(id), sliderSize(sliderSize), circleSize(circleSize), invertY(invertY), lastValue(sliderMaxValue), tangent(tangent), showTopText(showTopText), bottomText(bottomText)  {
 	scaledHeight = sliderSize * sliderLineHeight;
 
 	Figures::Polygon* polygon = new Figures::Polygon();
 
 	polygon->AddVertex(ofPoint(-(sliderWidth / 2.0f), 0.0f));
 	polygon->AddVertex(ofPoint((sliderWidth / 2.0f), 0.0f));
-	polygon->AddVertex(ofPoint((sliderWidth / 2.0f), sliderLineHeight));
-	polygon->AddVertex(ofPoint(-(sliderWidth / 2.0f), sliderLineHeight));
+	polygon->AddVertex(ofPoint((sliderWidth / 2.0f), scaledHeight));
+	polygon->AddVertex(ofPoint(-(sliderWidth / 2.0f), scaledHeight));
 	base = new FigureGraphic(polygon);
 	this->registerFingerEvents(base);
 	base->isHidden(true);
@@ -134,8 +134,8 @@ TableSlider::TableSlider(float angle, float distanceOffset, bool discreteSlider,
 	polygon = new Figures::Polygon();
 	polygon->AddVertex(ofPoint(-(linePolygonWidth / 2.0f), 0.0f));
 	polygon->AddVertex(ofPoint((linePolygonWidth / 2.0f), 0.0f));
-	polygon->AddVertex(ofPoint((linePolygonWidth / 2.0f), sliderLineHeight));
-	polygon->AddVertex(ofPoint(-(linePolygonWidth / 2.0f), sliderLineHeight));
+	polygon->AddVertex(ofPoint((linePolygonWidth / 2.0f), scaledHeight));
+	polygon->AddVertex(ofPoint(-(linePolygonWidth / 2.0f), scaledHeight));
 	sliderLine = new FigureGraphic(polygon);
 	sliderLine->color.r = 255;
 	sliderLine->color.g = 255;
@@ -148,8 +148,8 @@ TableSlider::TableSlider(float angle, float distanceOffset, bool discreteSlider,
 	polygon = new Figures::Polygon();
 	polygon->AddVertex(ofPoint(-(linePolygonWidth / 2.0f), 0.0f));
 	polygon->AddVertex(ofPoint((linePolygonWidth / 2.0f), 0.0f));
-	polygon->AddVertex(ofPoint((linePolygonWidth / 2.0f), sliderLineHeight));
-	polygon->AddVertex(ofPoint(-(linePolygonWidth / 2.0f), sliderLineHeight));
+	polygon->AddVertex(ofPoint((linePolygonWidth / 2.0f), scaledHeight));
+	polygon->AddVertex(ofPoint(-(linePolygonWidth / 2.0f), scaledHeight));
 	sliderFillLine = new FigureGraphic(polygon);
 	sliderFillLine->color.r = 255;
 	sliderFillLine->color.g = 255;
@@ -194,10 +194,10 @@ void TableSlider::updateTransformationMatrix() {
 	sliderLine->transformation = M;
 
 	ofMatrix4x4 FillLineM = M;
-	FillLineM.glScale(1, (lastValue / sliderMaxValue), 1);
+	FillLineM.glScale(1, ((lastValue - sliderMinValue) / (sliderMaxValue - sliderMinValue)), 1);
 	sliderFillLine->transformation = FillLineM;
 	
-	M.glTranslate(0, scaledHeight * (lastValue / sliderMaxValue), 0);
+	M.glTranslate(0, scaledHeight * ((lastValue - sliderMinValue) / (sliderMaxValue - sliderMinValue)), 0);
 	M.glScale(circleSize * 0.01f, circleSize * 0.01f, 1);
 	sliderCircle->transformation = M;
 }
@@ -207,6 +207,8 @@ void TableSlider::isHidden(bool is) {
 	sliderLine->isHidden(is);
 	sliderFillLine->isHidden(is);
 	sliderCircle->isHidden(is);
+
+	base->canCollide(!is);
 }
 
 void TableSlider::draw() {
@@ -219,7 +221,7 @@ void TableSlider::draw() {
 
 		if (showTopText) {
 			stringstream buffer;
-			buffer << int(-lastValue) << endl;
+			buffer << int(lastValue) << endl;
 			font.drawString(buffer.str(), true, 0, scaledHeight + stringSpacing);
 		}
 
@@ -236,7 +238,7 @@ void TableSlider::fingersEnter(InputGestureDirectFingers::enterCursorArgs& a) {
 };
 void TableSlider::fingersUpdate(InputGestureDirectFingers::updateCursorArgs& a) {
 	float percentage = ((a.finger->getDistance(basePoint.x, basePoint.y)) / scaledHeight);
-	float percentageValue = percentage * sliderMaxValue;
+	float percentageValue = sliderMinValue + (percentage * (sliderMaxValue - sliderMinValue));
 
 	if (discreteSlider) {
 		percentageValue = round(percentageValue);
@@ -246,6 +248,7 @@ void TableSlider::fingersUpdate(InputGestureDirectFingers::updateCursorArgs& a) 
 	cout << "fingers update: " << percentageValue << endl;
 
 	updateSliderArgs args;
+	args.id = id;
 	args.value = percentageValue;
 	ofNotifyEvent(updateSlider, args);
 
@@ -316,6 +319,7 @@ void TableCell::updateTransformationMatrix() {
 
 void TableCell::isHidden(bool is) {
 	base->isHidden(is);
+	base->canCollide(!is);
 }
 
 void TableCell::fingersTap(InputGestueTap::TapArgs & a) {
@@ -328,10 +332,10 @@ void TableCell::fingersTap(InputGestueTap::TapArgs & a) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TableSequencer::TableSequencer(float angle, float distanceOffset, int cellsNum, float openingAngle, bool clockwise, float thickness) : TableUIBase(angle, distanceOffset), cellsNum(cellsNum) {
+TableSequencerCells::TableSequencerCells(float angle, float distanceOffset, int cellsNum, float openingAngle, bool clockwise, float thickness) : TableUIBase(angle, distanceOffset), cellsNum(cellsNum) {
 	int gaps = cellsNum - 1;
-	float totalCellOpeningAngle = openingAngle - (float(gaps)) * gapAngle;
-	float cellOpeningAngle = totalCellOpeningAngle / ((float)cellsNum);
+	float totalCellOpeningAngle = openingAngle - float(gaps) * gapAngle;
+	float cellOpeningAngle = totalCellOpeningAngle / float(cellsNum);
 
 	float cellAngle;
 
@@ -346,38 +350,87 @@ TableSequencer::TableSequencer(float angle, float distanceOffset, int cellsNum, 
 	}
 
 	for (auto cell : cells) {
-		registerEvent(cell->tapCell, &TableSequencer::tapCellSequencerCallback, this);
+		registerEvent(cell->tapCell, &TableSequencerCells::updateCallback, this);
 	}
 
 }
 
-void TableSequencer::updateTransformationMatrix() {
+void TableSequencerCells::updateTransformationMatrix() {
 	for (auto cell : cells) {
 		cell->updatePosition(this->getX(), this->getY());
 	}
 }
 
-void TableSequencer::isHidden(bool is) {
+void TableSequencerCells::isHidden(bool is) {
 	for (auto cell : cells) {
 		cell->isHidden(is);
 	}
 }
 
-void TableSequencer::updateSequencerCells(vector<bool>& vec) {
+void TableSequencerCells::updateSequencerCells(vector<bool>& vec) {
 	for (size_t i = 0; i < cells.size(); i++) {
 		cells[i]->isSelected(vec[i]);
 	}
 }
 
-void TableSequencer::setActiveCell(int num) {
+void TableSequencerCells::setActiveCell(int num) {
 	for (int i = 0; i <= cellsNum - 1; i++) {
 		cells[i]->isActive(i == num ? true : false);
 	}
 }
 
-void TableSequencer::tapCellSequencerCallback(TableCell::tapCellArgs & a) {
-	tapSequencerArgs args;
+void TableSequencerCells::updateCallback(TableCell::tapCellArgs & a) {
+	updateTableSequencerCellsArgs args;
 	args.id = a.id;
 	args.state = a.selected;
-	ofNotifyEvent(tapSequencer, args);
+	ofNotifyEvent(updateTableSequencerCells, args);
+}
+
+
+TableSequencerSliders::TableSequencerSliders(float angle, float distanceOffset, int cellsNum, float openingAngle, float maxValue, float minValue, bool clockwise) : TableUIBase(angle, distanceOffset), cellsNum(cellsNum) {
+	int gaps = cellsNum - 1;
+	float totalCellOpeningAngle = openingAngle - float(gaps) * gapAngle;
+	float cellOpeningAngle = totalCellOpeningAngle / float(cellsNum);
+
+	float cellAngle;
+
+	for (int i = 0; i <= cellsNum - 1; i++) {
+		if (clockwise) {
+			cellAngle = ofWrapDegrees(angle - ((float(i) * cellOpeningAngle) + (float(i) * gapAngle)));
+		}
+		else {
+			cellAngle = ofWrapDegrees(angle + ((float(i) * cellOpeningAngle) + (float(i) * gapAngle)));
+		}
+		sliders.push_back(new TableSlider(cellAngle, distanceOffset, true, maxValue, minValue, i, 0.75f, 1.0f, false, false, true));
+	}
+
+	for (auto slider : sliders) {
+		registerEvent(slider->updateSlider, &TableSequencerSliders::updateCallback, this);
+	}
+
+}
+
+void TableSequencerSliders::updateTransformationMatrix() {
+	for (auto slider : sliders) {
+		slider->updatePosition(this->getX(), this->getY());
+	}
+}
+
+void TableSequencerSliders::isHidden(bool is) {
+	for (auto slider : sliders) {
+		slider->isHidden(is);
+	}
+}
+
+void TableSequencerSliders::updateSequencerSliders(vector<int>& vec) {
+	for (size_t i = 0; i < sliders.size(); i++) {
+		sliders[i]->setSliderValue(vec[i]);
+	}
+}
+
+void TableSequencerSliders::updateCallback(TableSlider::updateSliderArgs & a) {
+	updateTableSequencerSlidersArgs args;
+	args.id = a.id;
+	args.value = a.value;
+	ofNotifyEvent(updateTableSequencerSliders, args);
 }

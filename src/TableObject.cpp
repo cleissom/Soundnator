@@ -354,7 +354,8 @@ void Generator::patch() {
 static vector<float> akebono{ 72.0f, 74.0f, 75.0f, 79.0f, 80.0f, 84.0f, 86.0f, 87.0f };
 
 void Generator::updateAngleValue(float angle) {
-	pitch_ctrl.set(akebono[ofClamp(angle, 0, akebono.size() - 1)]);
+	//pitch_ctrl.set(akebono[ofClamp(angle, 0, akebono.size() - 1)]);
+	pitch_ctrl.set(int(ofMap(angle, 0, 2*TWO_PI, 48, 72)));
 }
 
 bool Generator::objectIsConnectableTo(TableObject* obj) {
@@ -423,73 +424,9 @@ bool Effect::objectIsConnectableToOutput() {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Controller::Controller(int id, int sequencerSection, connectionType_t connection) : TableObject(id, connection),  sequencerSection(sequencerSection) {
-	patch();
-
-	beats = vector<bool>(beatsNum, false);
-
-	actualSequence = 0;
-
-	auto& sequence = SoundEngine::I().getSection(sequencerSection).sequence(0);
-
-	sequence.code = [&] {
-		sequence.begin();
-
-		int bars = sequence.bars;
-
-		for (int i = 0; i <= 16 - 1; i++) {
-			sequence.delay((i*bars) / 16.0f);
-			sequence.out(0).bang(beats[i] ? 1.0f : 0.0f);
-			sequence.delay(((i*bars) + 0.2f) / 16.0f).out(0).bang(0.0f);
-		}
-
-		sequence.end();
-	};
-
-	SoundEngine::I().getSection(sequencerSection).sequence(0).bars = 4.0f;
-	
-
-	SoundEngine::I().getSection(sequencerSection).launch(0);
-
-
-	tableSequencer = new TableSequencer(0.0f, 0.065f, beatsNum, 320.0f, true);
-	tableSequencer->updateSequencerCells(beats);
-	tableSequencer->setBeats(&beats);
-
-	registerEvent(tableSequencer->tapSequencer, &Controller::tapSequencer, this);
-
-	button = new TableButton(20.0f, 0.09f);
-	slider = new TableSlider(-90.0f, 0.15f, true, 2.0f);
-	registerEvent(button->TapButton, &Controller::tapButton, this);
-	registerEvent(slider->updateSlider, &Controller::updateSlider, this);
+Controller::Controller(int id, connectionType_t connection) : TableObject(id, connection) {
 }
 
-
-
-void Controller::patch() {
-	pitch_ctrl >> osc;
-	//osc.out_pulse() >> amp >> trig_out;
-	SoundEngine::I().getSection(sequencerSection).out_trig(0) >> trig_out;
-	//SoundEngine::I().getEngine().sequencer.sections[0].out_value(1) >> pitch_out;
-	this->setToScope(amp);
-	amp.set(1.0f);
-}
-
-
-void Controller::update() {
-	updateTableUI(tableSequencer);
-	updateTableUI(button);
-	updateTableUI(slider, showSlider);
-
-	tableSequencer->setActiveCell(int(ofMap(SoundEngine::I().getSection(sequencerSection).sequence(0).meter_percent(), 0, 0.95, 0, 15)));
-}
-
-void Controller::addCursor(InputGestureDirectFingers::newCursorArgs & a) {
-}
-
-void Controller::updateAngleValue(float angle) {
-	//SoundEngine::I().getEngine().sequencer.sections[0].sequence(0).bars = (int)ofClamp(angle, 1, 4);
-}
 
 bool Controller::objectIsConnectableTo(TableObject* obj) {
 	//return isObject<Generator>(obj) || isObject<Effect>(obj);
@@ -500,21 +437,154 @@ bool Controller::objectIsConnectableToOutput() {
 	return false;
 }
 
-void Controller::tapSequencer(TableSequencer::tapSequencerArgs & a) {
-	cout << "Tap on: " << a.id << endl;
-	beats[a.id] = a.state;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Sequencer::Sequencer(int id, int sequencerSection, connectionType_t connection) : Controller(id, connection), sequencerSection(sequencerSection) {
+	patch();
+
+	beats	= vector<vector<bool>>(4, vector<bool> (beatsNum, false));
+	pitches = vector<vector<int>>(4, vector<int> (beatsNum, 0));
+	volumes = vector<vector<int>>(4, vector<int> (beatsNum, 100));
+
+	actualSequence = 0;
+	actualMode = SEQUENCER;
+
+	auto& sequence = SoundEngine::I().getSection(sequencerSection).sequence(0);
+
+	sequence.code = [&] {
+		sequence.begin();
+
+		int bars = sequence.bars;
+
+		for (int i = 0; i <= 16 - 1; i++) {
+			sequence.delay((i*bars) / 16.0f);
+			sequence.out(0).bang(beats[actualSequence][i] ? float(volumes[actualSequence][i]) / 100.0f : 0.0f);
+			sequence.out(1).bang(pitches[actualSequence][i]);
+			sequence.delay(((i*bars) + 0.2f) / 16.0f).out(0).bang(0.0f);
+		}
+
+		sequence.end();
+	};
+
+	SoundEngine::I().getSection(sequencerSection).sequence(0).bars = 4.0f;
+
+	SoundEngine::I().getSection(sequencerSection).launch(0);
+
+	tableSequencerCells = new TableSequencerCells(0.0f, 0.065f, beatsNum, 320.0f);
+	tableSequencerCells->updateSequencerCells(beats[actualSequence]);
+	
+	tableSequencerPitch = new TableSequencerSliders(-10.0f, 0.1f, beatsNum, 320.0f, 12, -12);
+	tableSequencerPitch->updateSequencerSliders(pitches[actualSequence]);
+	
+	tableSequencerVolume = new TableSequencerSliders(-10.0f, 0.1f, beatsNum, 320.0f);
+	tableSequencerVolume->updateSequencerSliders(volumes[actualSequence]);
+
+	button = new TableButton(20.0f, 0.09f);
+	tempoSlider = new TableSlider(-90.0f, 0.15f, true, 2.0f);
+
+	registerEvent(tableSequencerCells->updateTableSequencerCells, &Sequencer::updateTableSequencerCells, this);
+	registerEvent(tableSequencerPitch->updateTableSequencerSliders, &Sequencer::updateTableSequencerPitch, this);
+	registerEvent(tableSequencerVolume->updateTableSequencerSliders, &Sequencer::updateTableSequencerVolume, this);
+	registerEvent(button->TapButton, &Sequencer::tapButton, this);
+	registerEvent(button->LongPushButton, &Sequencer::longPushButton, this);
+	registerEvent(tempoSlider->updateSlider, &Sequencer::updateTempoSlider, this);
+
 }
 
-void Controller::tapButton(TableButton::TapButtonArgs & a) {
+
+void Sequencer::patch() {
+	pitch_ctrl >> osc;
+	//osc.out_pulse() >> amp >> trig_out;
+	SoundEngine::I().getSection(sequencerSection).out_trig(0) >> trig_out;
+	SoundEngine::I().getSection(sequencerSection).out_value(1) >> pitch_out;
+	this->setToScope(amp);
+	amp.set(1.0f);
+}
+
+
+void Sequencer::update() {
+
+	switch (actualMode) {
+	case SEQUENCER:
+		showTableSequencerCells = true;
+		showTableSequencerPitch = false;
+		showTableSequencerVolume = false;
+		break;
+	case PITCH:
+		showTableSequencerCells = false;
+		showTableSequencerPitch = true;
+		showTableSequencerVolume = false;
+		break;
+	case VOLUME:
+		showTableSequencerCells = false;
+		showTableSequencerPitch = false;
+		showTableSequencerVolume = true;
+		break;
+	default:
+		break;
+	}
+
+	updateTableUI(button);
+	updateTableUI(tempoSlider, showSlider && showTableSequencerCells);
+	updateTableUI(tableSequencerCells, showTableSequencerCells);
+	updateTableUI(tableSequencerPitch, showTableSequencerPitch);
+	updateTableUI(tableSequencerVolume, showTableSequencerVolume);
+
+	tableSequencerCells->setActiveCell(int(ofMap(SoundEngine::I().getSection(sequencerSection).sequence(0).meter_percent(), 0, 0.95, 0, 15)));
+}
+
+void Sequencer::updateAngleValue(float angle) {
+	int newSequenceValue = int(ofMap(angle, 0, TWO_PI, 0, 3, true));
+	if (newSequenceValue != actualSequence) {
+		actualSequence = newSequenceValue;
+		tableSequencerCells->updateSequencerCells(beats[actualSequence]);
+		tableSequencerPitch->updateSequencerSliders(pitches[actualSequence]);
+		tableSequencerVolume->updateSequencerSliders(volumes[actualSequence]);
+	}
+}
+
+
+void Sequencer::updateTableSequencerCells(TableSequencerCells::updateTableSequencerCellsArgs & a) {
+	beats[actualSequence][a.id] = a.state;
+}
+void Sequencer::updateTableSequencerPitch(TableSequencerSliders::updateTableSequencerSlidersArgs & a) {
+	pitches[actualSequence][a.id] = a.value;
+}
+void Sequencer::updateTableSequencerVolume(TableSequencerSliders::updateTableSequencerSlidersArgs & a) {
+	volumes[actualSequence][a.id] = a.value;
+}
+
+void Sequencer::tapButton(TableButton::TapButtonArgs & a) {
+	switch (actualMode)
+	{
+	case SEQUENCER:
+		actualMode = PITCH;
+		break;
+	case PITCH:
+		actualMode = VOLUME;
+		break;
+	case VOLUME:
+		actualMode = SEQUENCER;
+		break;
+	default:
+		break;
+	}
+}
+
+void Sequencer::longPushButton(TableButton::LongPushButtonArgs & a) {
 	showSlider = not(showSlider);
 }
 
-void Controller::updateSlider(TableSlider::updateSliderArgs & a) {
+void Sequencer::updateTempoSlider(TableSlider::updateSliderArgs & a) {
 	float bars = float(1 << int(a.value));
 	SoundEngine::I().getSection(sequencerSection).sequence(0).bars = bars;
 }
 
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 
 
 Output::Output(int id) : TableObject(id) {

@@ -79,6 +79,7 @@ private:
 class TableSlider : public TableUIBase {
 	struct commomTableSliderArgs : public EventArgs
 	{
+		int id;
 		float value;
 	};
 
@@ -87,10 +88,12 @@ public:
 
 	ofEvent<updateSliderArgs> updateSlider;
 
-	TableSlider(float angle = 0.0f, float distanceOffset = 0.075f, bool discreteSlider = false, float sliderMaxValue = 100.0f, float sliderSize = 1.0f, float circleSize = 1.0f, bool invertY = false, bool tangent = true, bool showTopText = false, string bottomText = "");
+	TableSlider(float angle = 0.0f, float distanceOffset = 0.075f, bool discreteSlider = false, float sliderMaxValue = 100.0f, float sliderMinValue = 0.0f, int id = 0, float sliderSize = 1.0f, float circleSize = 1.0f, bool invertY = false, bool tangent = true, bool showTopText = false, string bottomText = "");
 	void updateTransformationMatrix();
 	void isHidden(bool is);
 	void draw();
+
+	void setSliderValue(float value) { this->lastValue = value; };
 
 	void fingersEnter(InputGestureDirectFingers::enterCursorArgs & a);
 	void fingersUpdate(InputGestureDirectFingers::updateCursorArgs & a);
@@ -104,6 +107,8 @@ private:
 
 	bool discreteSlider;
 	float sliderMaxValue;
+	float sliderMinValue;
+	int id;
 	float sliderSize;
 	float circleSize;
 	bool invertY;
@@ -157,43 +162,61 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class TableSequencer : public TableUIBase {
-	struct commomTableSequencerArgs : public EventArgs
+class TableSequencerCells : public TableUIBase {
+	struct commomTableSequencerCellsArgs : public EventArgs
 	{
 		int id;
 		bool state;
 	};
 
 public:
-	typedef commomTableSequencerArgs tapSequencerArgs;
+	typedef commomTableSequencerCellsArgs updateTableSequencerCellsArgs;
 
-	ofEvent<tapSequencerArgs> tapSequencer;
+	ofEvent<updateTableSequencerCellsArgs> updateTableSequencerCells;
 
-	TableSequencer(float angle = 0.0f, float distanceOffset = 0.075f, int cellsNum = 5, float openingAngle = 180, bool clockwise = false, float thickness = 0.04f);
+	TableSequencerCells(float angle = 0.0f, float distanceOffset = 0.075f, int cellsNum = 5, float openingAngle = 180, bool clockwise = true, float thickness = 0.04f);
 	void updateTransformationMatrix();
 	void isHidden(bool is);
-
-	void tapCellSequencerCallback(TableCell::tapCellArgs & a);
-
-	void setBeats(vector<bool>* beats) { this->beats = beats; }
-
 	void updateSequencerCells(vector<bool>& vec);
-
 	void setActiveCell(int num);
+
+	void updateCallback(TableCell::tapCellArgs & a);
 
 private:
 	vector<TableCell*> cells;
-	vector<bool>* beats;
-
 	int cellsNum;
 
 	const float gapAngle = 2.0f;
 };
 
 
-class SequencerUI : Graphic {
+
+
+class TableSequencerSliders : public TableUIBase {
+	struct commomTableSequencerSlidersArgs : public EventArgs
+	{
+		int id;
+		float value;
+	};
+
 public:
-	SequencerUI();
+	typedef commomTableSequencerSlidersArgs updateTableSequencerSlidersArgs;
+
+	ofEvent<updateTableSequencerSlidersArgs> updateTableSequencerSliders;
+
+	TableSequencerSliders(float angle = 0.0f, float distanceOffset = 0.075f, int cellsNum = 5, float openingAngle = 180, float maxValue = 100.0f, float minValue = 0.0f, bool clockwise = true);
+	void updateTransformationMatrix();
+	void isHidden(bool is);
+	void updateSequencerSliders(vector<int>& vec);
+
+	void updateCallback(TableSlider::updateSliderArgs & a);
+
+private:
+	vector<TableSlider*> sliders;
+	int cellsNum;
+
+	const float gapAngle = 2.0f;
 };
+
 
 #endif

@@ -157,21 +157,34 @@ class Controller : public TableObject {
 
 public:
 
-	Controller(int id = -1, int sequencerSection = 0, connectionType_t connection = CONTROL);
-	Controller(const Controller  & other) { patch(); } // you need this to use std::vector with your class, otherwise will not compile
+	Controller(int id = -1, connectionType_t connection = CONTROL);
 
-	void patch();
-	void update();
-	void addCursor(InputGestureDirectFingers::newCursorArgs & a);
-	void updateAngleValue(float angle);
 	bool objectIsConnectableTo(TableObject* obj);
 	bool objectIsConnectableToOutput();
 
-	void tapSequencer(TableSequencer::tapSequencerArgs & a);
+private:
 
+};
+
+class Sequencer : public Controller {
+
+public:
+	typedef enum { SEQUENCER, PITCH, VOLUME } sequencerMode;
+
+	Sequencer(int id = -1, int sequencerSection = 0, connectionType_t connection = CONTROL);
+	Sequencer(const Sequencer  & other) { patch(); } // you need this to use std::vector with your class, otherwise will not compile
+
+	void patch();
+
+	void update();
+	void updateAngleValue(float angle);
+
+	void updateTableSequencerCells(TableSequencerCells::updateTableSequencerCellsArgs & a);
+	void updateTableSequencerPitch(TableSequencerSliders::updateTableSequencerSlidersArgs & a);
+	void updateTableSequencerVolume(TableSequencerSliders::updateTableSequencerSlidersArgs & a);
 	void tapButton(TableButton::TapButtonArgs & a);
-
-	void updateSlider(TableSlider::updateSliderArgs & a);
+	void longPushButton(TableButton::LongPushButtonArgs & a);
+	void updateTempoSlider(TableSlider::updateSliderArgs & a);
 
 
 private:
@@ -179,17 +192,29 @@ private:
 	pdsp::VAOscillator  osc;
 	pdsp::ValueControl	pitch_ctrl;
 	pdsp::VAFilter      filter; // 24dB multimode filter
-	vector<bool> beats;
-	TableSequencer* tableSequencer;
+
+	vector< vector<bool> > beats;
+	vector< vector<int> > pitches;
+	vector< vector<int> > volumes;
+
 	int beatsNum = 16;
-	TableButton*  button;
-	TableSlider*  slider;
+
+	sequencerMode actualMode;
 
 	bool showSlider = false;
+	bool showTableSequencerCells = false;
+	bool showTableSequencerPitch = false;
+	bool showTableSequencerVolume = false;
 	int actualSequence;
 
 	int sequencerSection;
 
+
+	TableSequencerCells*	tableSequencerCells;
+	TableSequencerSliders*	tableSequencerPitch;
+	TableSequencerSliders*	tableSequencerVolume;
+	TableButton*			button;
+	TableSlider*			tempoSlider;
 };
 
 

@@ -8,8 +8,8 @@
 class Font {
 public:
 
-	Font(int fontsize = 20) {
-		font.load("verdana.ttf", fontsize);
+	Font(int fontsize = 14) {
+		font.load("verdana.ttf", fontsize, true);
 	}
 
 	void drawString(string str, bool center = true, float x = 0, float y = 0, bool bottom = false) {
