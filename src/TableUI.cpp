@@ -401,7 +401,7 @@ TableSequencerSliders::TableSequencerSliders(float angle, float distanceOffset, 
 		else {
 			cellAngle = ofWrapDegrees(angle + ((float(i) * cellOpeningAngle) + (float(i) * gapAngle)));
 		}
-		sliders.push_back(new TableSlider(cellAngle, distanceOffset, true, maxValue, minValue, i, 0.75f, 1.0f, false, false, true));
+		sliders.push_back(new TableSlider(cellAngle, distanceOffset, true, maxValue, minValue, i, 0.6f, 1.0f, false, false, true));
 	}
 
 	for (auto slider : sliders) {

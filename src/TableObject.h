@@ -34,8 +34,6 @@ public:
 
 	void updateTurnMultiplier(float angle);
 
-	virtual void addCursor(InputGestureDirectFingers::newCursorArgs & a);
-	virtual void Tap(InputGestureTap::TapArgs & a);
 	void updateObject(InputGestureDirectObjects::updateObjectArgs& a);
 
 	template <typename T>
@@ -83,10 +81,13 @@ protected:
 	pdsp::PatchNode     trig_out;
 	bool connectionUpdated;
 
+	float angleMaxValue = TWO_PI;
+	float angleMinValue = -TWO_PI;
+
 private:
 	int		id;
 	float	rawAngleLastValue = 0.0f;
-	int		turnsMultiplier = 1;
+	int		turnsMultiplier = 0;
 	const float derivativeThreshold = 2.0f;
 	connectionType_t connection;
 	DirectObject* dobj;
@@ -107,25 +108,40 @@ class Generator : public TableObject {
 public:
 
 	Generator(int id = -1, connectionType_t connection = AUDIO);
-	Generator(const Generator & other) { patch(); } // you need this to use std::vector with your class, otherwise will not compile
+
+	bool objectIsConnectableTo(TableObject* obj);
+	bool objectIsConnectableToOutput();
+
+private:
+
+};
+
+
+class Oscillator : public Generator {
+
+public:
+	typedef enum {SINE, SAW, PULSE} oscillatorMode;
+
+	Oscillator(int id = -1);
+	Oscillator(const Generator & other) { patch(); } // you need this to use std::vector with your class, otherwise will not compile
 
 	void update();
 	void patch();
 	void updateAngleValue(float angle);
-	bool objectIsConnectableTo(TableObject* obj);
-	bool objectIsConnectableToOutput();
 	void updateVolume(TableSlider::updateSliderArgs & a);
 	void Tap(TableButton::TapButtonArgs & a);
-	void objectDraw();
 
 private:
+	oscillatorMode actualMode;
 	int choose = 0;
 	TableButton*  button;
 	TableSlider*  slider;
 	pdsp::ValueControl  pitch_ctrl;
 	pdsp::Amp           ampEnv;
 	pdsp::Amp           amp;
-	pdsp::VAOscillator  osc;
+	pdsp::VAOscillator  sine;
+	pdsp::VAOscillator  saw;
+	pdsp::VAOscillator  pulse;
 	pdsp::ADSR			env;
 
 };

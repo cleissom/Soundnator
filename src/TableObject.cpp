@@ -2,9 +2,6 @@
 
 
 TableObject::TableObject(int id, connectionType_t connection) : id(id), dobj(nullptr), connection(connection), followingObj(nullptr), precedingAudioObj(nullptr), precedingControlObj(nullptr) {
-	//registerMyEvent(InputGestureDirectFingers::I().newCursor, &TableObject::addCursor, this);
-	//registerMyEvent(InputGestureTap::I().Tap, &TableObject::Tap, this);
-
 	registerEvent(InputGestureDirectObjects::I().updateObject, &TableObject::updateObject, this);
 
 	addModuleInput("signal", input);
@@ -23,16 +20,11 @@ int TableObject::getId() {
 
 void TableObject::updateTurnMultiplier(float angle) {
 	float derivative = angle - rawAngleLastValue;
-	if (derivative > derivativeThreshold) turnsMultiplier++;
-	else if (derivative < (-derivativeThreshold)) turnsMultiplier--;
+	float totalAngle = turnsMultiplier * M_2PI - angle;
+	if ((derivative > derivativeThreshold) && (((turnsMultiplier*M_2PI) - angle) < angleMaxValue)) turnsMultiplier++;
+	else if ((derivative < (-derivativeThreshold)) && (((2 * turnsMultiplier*M_2PI) - angle) > angleMinValue)) turnsMultiplier--;
 	rawAngleLastValue = angle;
-}
-
-void TableObject::addCursor(InputGestureDirectFingers::newCursorArgs & a) {
-}
-
-void TableObject::Tap(InputGestureTap::TapArgs & a) {
-
+	cout << "turns: " << turnsMultiplier << endl;
 }
 
 void TableObject::updateObject(InputGestureDirectObjects::updateObjectArgs& a) {
@@ -41,6 +33,8 @@ void TableObject::updateObject(InputGestureDirectObjects::updateObjectArgs& a) {
 		float rawAngle = a.object->angle;
 		updateTurnMultiplier(rawAngle);
 		float angle = turnsMultiplier * M_2PI - rawAngle;
+		if (angle > angleMaxValue) angle = angleMaxValue;
+		if (angle < angleMinValue) angle = angleMinValue;
 		cout << angle << endl;
 		updateAngleValue(angle);
 	}
@@ -297,17 +291,54 @@ void TableObject::updateTableUI(TableUIBase* ui, bool conditional) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Generator::Generator(int id, connectionType_t connection) : TableObject(id, connection) {
+Generator::Generator(int id, connectionType_t connection) : TableObject(id, connection) {};
+
+bool Generator::objectIsConnectableTo(TableObject* obj) {
+	return isObject<Effect>(obj);
+}
+
+bool Generator::objectIsConnectableToOutput() {
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Oscillator::Oscillator(int id) : Generator(id) {
 	patch();
-	button = new TableButton(90.0f, 0.075f);
-	slider = new TableSlider(237.0f, 0.1f);
-	registerEvent(button->TapButton, &Generator::Tap, this);
-	registerEvent(slider->updateSlider, &Generator::updateVolume, this);
+
+	angleMinValue = -TWO_PI;
+	angleMaxValue = 2 * TWO_PI;
+
+	actualMode = SINE;
+
+	button = new TableButton(180.0f, 0.075f);
+	slider = new TableSlider(270.0f, 0.075f);
+	registerEvent(button->TapButton, &Oscillator::Tap, this);
+	registerEvent(slider->updateSlider, &Oscillator::updateVolume, this);
 
 }
 
 
-void Generator::update() {
+void Oscillator::update() {
+
+	switch (actualMode) {
+	case SINE:
+		ampEnv.in_signal().disconnectIn();
+		sine.out_sine() >> ampEnv;
+		break;
+	case SAW:
+		ampEnv.in_signal().disconnectIn();
+		saw.out_saw() >> ampEnv;
+		break;
+	case PULSE:
+		ampEnv.in_signal().disconnectIn();
+		pulse.out_pulse() >> ampEnv;
+		break;
+	default:
+		break;
+	}
+
 	updateTableUI(button);
 	updateTableUI(slider);
 
@@ -325,69 +356,59 @@ void Generator::update() {
 }
 
 
-class Scale : public pdsp::Unit {
-	Scale() {};
+void Oscillator::patch() {
 
-};
-
-void Generator::patch() {
-
-	//patchinga
-	osc.out_pulse() >> ampEnv;
 	ampEnv >> amp * dB(-12.0f) >> output;
-	//env.set(0.0f, 50.0f, 1.0f, 100.0f) >> ampEnv.in_mod();
 	trig_in >> env.in_trig();
-	//1.0f >> env.in_trig();
-	pitch_ctrl >> osc.in_pitch();
-	pitch_in >> osc.in_pitch();
-	pitch_ctrl.enableSmoothing(50.0f);
 
-	//1.0f >> ampEnv.in_mod();
+	pitch_ctrl >> sine.in_pitch();
+	pitch_ctrl >> saw.in_pitch();
+	pitch_ctrl >> pulse.in_pitch();
+
+	pitch_in >> sine.in_pitch();
+	pitch_in >> saw.in_pitch();
+	pitch_in >> pulse.in_pitch();
+	pitch_ctrl.enableSmoothing(100.0f);
 
 	amp.set(1.0f);
-	//trig_in.set(1.0f);
 	ampEnv.set(1.0f);
 
 	this->setToScope(amp);
 }
 
-static vector<float> akebono{ 72.0f, 74.0f, 75.0f, 79.0f, 80.0f, 84.0f, 86.0f, 87.0f };
 
-void Generator::updateAngleValue(float angle) {
+void Oscillator::updateAngleValue(float angle) {
 	//pitch_ctrl.set(akebono[ofClamp(angle, 0, akebono.size() - 1)]);
-	pitch_ctrl.set(int(ofMap(angle, 0, 2*TWO_PI, 48, 72)));
+	pitch_ctrl.set(ofMap(angle, -TWO_PI, 2 * TWO_PI, 36, 72));
 }
 
-bool Generator::objectIsConnectableTo(TableObject* obj) {
-	return isObject<Effect>(obj);
-}
-
-bool Generator::objectIsConnectableToOutput() {
-	return true;
-}
-
-void Generator::updateVolume(TableSlider::updateSliderArgs& a) {
+void Oscillator::updateVolume(TableSlider::updateSliderArgs& a) {
 	cout << "update volume to: " << (a.value / 100.0f) << endl;
 	amp.set(a.value / 100.0f);
 }
 
 
-void Generator::Tap(TableButton::TapButtonArgs& a) {
-	switch (choose % 2) {
-	case 1:
-		osc.out_pulse().disconnectOut();
-		osc.out_saw() >> ampEnv;
+void Oscillator::Tap(TableButton::TapButtonArgs& a) {
+
+	switch (actualMode)
+	{
+	case SINE:
+		actualMode = SAW;
 		break;
-	case 0:
-		osc.out_saw().disconnectOut();
-		osc.out_pulse() >> ampEnv;
+	case SAW:
+		actualMode = PULSE;
+		break;
+	case PULSE:
+		actualMode = SINE;
+		break;
+	default:
 		break;
 	}
-	choose++;
 }
 
-void Generator::objectDraw() {
-}
+
+
+static vector<float> akebono{ 72.0f, 74.0f, 75.0f, 79.0f, 80.0f, 84.0f, 86.0f, 87.0f };
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -443,9 +464,12 @@ bool Controller::objectIsConnectableToOutput() {
 Sequencer::Sequencer(int id, int sequencerSection, connectionType_t connection) : Controller(id, connection), sequencerSection(sequencerSection) {
 	patch();
 
-	beats	= vector<vector<bool>>(4, vector<bool> (beatsNum, false));
-	pitches = vector<vector<int>>(4, vector<int> (beatsNum, 0));
-	volumes = vector<vector<int>>(4, vector<int> (beatsNum, 100));
+	angleMaxValue = TWO_PI;
+	angleMinValue = 0.0f;
+
+	beats = vector<vector<bool>>(4, vector<bool>(beatsNum, false));
+	pitches = vector<vector<int>>(4, vector<int>(beatsNum, 0));
+	volumes = vector<vector<int>>(4, vector<int>(beatsNum, 100));
 
 	actualSequence = 0;
 	actualMode = SEQUENCER;
@@ -473,11 +497,11 @@ Sequencer::Sequencer(int id, int sequencerSection, connectionType_t connection) 
 
 	tableSequencerCells = new TableSequencerCells(0.0f, 0.065f, beatsNum, 320.0f);
 	tableSequencerCells->updateSequencerCells(beats[actualSequence]);
-	
-	tableSequencerPitch = new TableSequencerSliders(-10.0f, 0.1f, beatsNum, 320.0f, 12, -12);
+
+	tableSequencerPitch = new TableSequencerSliders(-10.0f, 0.085f, beatsNum, 320.0f, 12, -12);
 	tableSequencerPitch->updateSequencerSliders(pitches[actualSequence]);
-	
-	tableSequencerVolume = new TableSequencerSliders(-10.0f, 0.1f, beatsNum, 320.0f);
+
+	tableSequencerVolume = new TableSequencerSliders(-10.0f, 0.085f, beatsNum, 320.0f);
 	tableSequencerVolume->updateSequencerSliders(volumes[actualSequence]);
 
 	button = new TableButton(20.0f, 0.09f);
