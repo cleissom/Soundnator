@@ -130,7 +130,7 @@ TableSlider::TableSlider(float angle, float distanceOffset, bool discreteSlider,
 	sliderCircle->canCollide(false);
 	sliderCircle->isHidden(true);
 
-	float linePolygonWidth = 0.005f;
+	
 	polygon = new Figures::Polygon();
 	polygon->AddVertex(ofPoint(-(linePolygonWidth / 2.0f), 0.0f));
 	polygon->AddVertex(ofPoint((linePolygonWidth / 2.0f), 0.0f));
@@ -215,7 +215,9 @@ void TableSlider::draw() {
 	if (!hidden) {
 		ofPushMatrix();
 
-		const float stringSpacing = 0.02f;
+		ofSetColor(255);
+
+		const float stringSpacing = 0.01f;
 
 		ofMultMatrix(sliderBottom);
 

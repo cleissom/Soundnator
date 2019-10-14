@@ -125,7 +125,8 @@ private:
 	Font font;
 
 	const float sliderLineHeight = 0.1f;
-	const float sliderWidth = 0.05f;
+	const float sliderWidth = 0.02f;
+	const float linePolygonWidth = 0.005f;
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

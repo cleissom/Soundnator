@@ -8,7 +8,7 @@
 class Font {
 public:
 
-	Font(int fontsize = 14) {
+	Font(int fontsize = 10) {
 		font.load("verdana.ttf", fontsize, true);
 	}
 
@@ -23,6 +23,7 @@ public:
 		auto xoffset = center ? -font.getStringBoundingBox(str,0,0).width / 2.0 : 0.0f;
 		auto yoffset = bottom ? font.getStringBoundingBox(str, 0, 0).height : 0.0f;
 
+		glScalef(-1.0f, 1.0, 1);
 		font.drawString(str, xScaled + xoffset, yScaled + yoffset);
 
 		ofPopMatrix();
