@@ -289,6 +289,11 @@ void TableObject::updateTableUI(TableUIBase* ui, bool conditional) {
 	}
 }
 
+void TableObject::loadImg(ofImage& image, const std::string & dir) {
+	image.load(dir);
+	image.mirror(true, false);
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Generator::Generator(int id, connectionType_t connection) : TableObject(id, connection) {};
@@ -317,6 +322,10 @@ Oscillator::Oscillator(int id) : Generator(id) {
 	registerEvent(button->TapButton, &Oscillator::Tap, this);
 	registerEvent(slider->updateSlider, &Oscillator::updateVolume, this);
 
+
+	loadImg(sineImg, "1.png");
+	loadImg(sawImg, "2.png");
+	loadImg(pulseImg, "3.png");
 }
 
 
@@ -326,14 +335,17 @@ void Oscillator::update() {
 	case SINE:
 		ampEnv.in_signal().disconnectIn();
 		sine.out_sine() >> ampEnv;
+		button->setImage(sineImg);
 		break;
 	case SAW:
 		ampEnv.in_signal().disconnectIn();
 		saw.out_saw() >> ampEnv;
+		button->setImage(sawImg);
 		break;
 	case PULSE:
 		ampEnv.in_signal().disconnectIn();
 		pulse.out_pulse() >> ampEnv;
+		button->setImage(pulseImg);
 		break;
 	default:
 		break;

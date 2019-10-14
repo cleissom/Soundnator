@@ -66,6 +66,10 @@ TableButton::TableButton(float angle, float distanceOffset, float size) : TableU
 	updatePosition(0, 0);
 };
 
+void TableButton::setImage(ofImage& image) {
+	base->getFigure()->SetTexture(image);
+}
+
 void TableButton::updateTransformationMatrix() {
 	/// local pivot -> direct order.  Rotate -> Translate -> Scale
 	ofMatrix4x4 M;

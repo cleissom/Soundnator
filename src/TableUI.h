@@ -59,6 +59,7 @@ public:
 	ofEvent<LongPushButtonArgs> LongPushButton;
 
 	TableButton(float angle = 0.0f, float distanceOffset = 0.05f, float size = 2.0f);
+	void setImage(ofImage & image);
 	void updateTransformationMatrix();
 	void isHidden(bool);
 

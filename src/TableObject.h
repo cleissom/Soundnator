@@ -72,6 +72,8 @@ public:
 
 	void updateTableUI(TableUIBase * ui, bool conditional = true);
 
+	void loadImg(ofImage & image, const std::string & dir);
+
 protected:
 	pdsp::PatchNode     input;
 	pdsp::PatchNode     output;
@@ -144,6 +146,9 @@ private:
 	pdsp::VAOscillator  pulse;
 	pdsp::ADSR			env;
 
+	ofImage sineImg;
+	ofImage sawImg;
+	ofImage pulseImg;
 };
 
 
