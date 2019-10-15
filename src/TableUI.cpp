@@ -460,7 +460,7 @@ TableInfoCircle::TableInfoCircle(float angle, float distanceOffset, float openin
 		}
 	}
 	else {
-		continuousCell = new TableCell(angle, distanceOffset, openingAngle, thickness, clockwise);
+		continuousCell = new TableCell(angle, distanceOffset, openingAngle, thickness, clockwise, 0, false);
 	}
 	
 

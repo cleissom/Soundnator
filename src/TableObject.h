@@ -315,6 +315,8 @@ public:
 	void longPushButton(TableButton::LongPushButtonArgs & a);
 	void updateTempoSlider(TableSlider::updateSliderArgs & a);
 
+	void updateWidthSlider(TableSlider::updateSliderArgs & a);
+
 
 private:
 	pdsp::Amp           amp;
@@ -337,6 +339,7 @@ private:
 	int actualSequence;
 
 	int sequencerSection;
+	float pulseWidth;
 
 
 	TableSequencerCells*	tableSequencerCells;
@@ -344,6 +347,7 @@ private:
 	TableSequencerSliders*	tableSequencerVolume;
 	TableButton*			button;
 	TableSlider*			tempoSlider;
+	TableSlider*			widthSlider;
 	TableInfoCircle*		info;
 };
 

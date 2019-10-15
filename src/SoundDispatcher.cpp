@@ -144,9 +144,9 @@ void SoundDispatcher::processConnections(TableObject* object) {
 
 
 void SoundDispatcher::newObject(InputGestureDirectObjects::newObjectArgs& a) {
-	cout << "New object" << endl;
+	/*cout << "New object" << endl;
 	cout << " \n" << endl;
-	cout << " \n" << endl;
+	cout << " \n" << endl;*/
 	int id = a.object->f_id;
 	addObjectToTable(a.object);
 	processConnections(TableObjects[a.object->f_id]);

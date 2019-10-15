@@ -315,6 +315,8 @@ Oscillator::Oscillator(int id) : Generator(id) {
 	angleMinValue = -TWO_PI;
 	angleMaxValue = 2 * TWO_PI;
 
+	actualModeChanged = true;
+
 	actualMode = SINE;
 
 	button = new TableButton(180.0f, 0.075f);
@@ -383,7 +385,7 @@ void Oscillator::update() {
 
 void Oscillator::patch() {
 
-	ampEnv >> amp * dB(-12.0f) >> output;
+	ampEnv >> amp * dB(-6.0f) >> output;
 	trig_in >> env.in_trig();
 
 	pitch_ctrl >> sine.in_pitch();
@@ -520,7 +522,7 @@ void Sampler::update() {
 
 void Sampler::patch() {
 
-	trig_in >> sampler >> amp * dB(-12.0f) >> output;
+	trig_in >> sampler >> amp * dB(-6.0f) >> output;
 	trig_in >> env.set(0, 200, 200) >> amp.in_mod();
 
 
@@ -763,7 +765,7 @@ void Delay::Tap(TableButton::TapButtonArgs& a) {
 }
 
 void Delay::updateSlider(TableSlider::updateSliderArgs& a) {
-	float feedback = ofMap(a.value, 0.0, 100.0, 0, 1.0);
+	float feedback = ofMap(a.value, 0.0, 100.0, 0, 0.9);
 	feedback_ctrl.set(feedback);
 }
 
@@ -810,7 +812,7 @@ Sequencer::Sequencer(int id, int sequencerSection, connectionType_t connection) 
 			sequence.delay((i*bars) / 16.0f);
 			sequence.out(0).bang(beats[actualSequence][i] ? float(volumes[actualSequence][i]) / 100.0f : 0.0f);
 			sequence.out(1).bang(pitches[actualSequence][i]);
-			sequence.delay(((i*bars) + 0.2f) / 16.0f).out(0).bang(0.0f);
+			sequence.delay(((i*bars) + (pulseWidth*bars)) / 16.0f).out(0).bang(0.0f);
 		}
 
 		sequence.end();
@@ -830,7 +832,8 @@ Sequencer::Sequencer(int id, int sequencerSection, connectionType_t connection) 
 	tableSequencerVolume->updateSequencerSliders(volumes[actualSequence]);
 
 	button = new TableButton(20.0f, 0.09f);
-	tempoSlider = new TableSlider(-90.0f, 0.15f, true, 2.0f);
+	tempoSlider = new TableSlider(-90.0f, 0.13f, true, 2.0f);
+	widthSlider = new TableSlider(90.0f, 0.13f, false, 100, 0, 0, 1, 1, true, true, false, "W");
 	info = new TableInfoCircle(0, 0.05, 160, true, true, 4, 4.0f, 0.0f);
 
 	registerEvent(tableSequencerCells->updateTableSequencerCells, &Sequencer::updateTableSequencerCells, this);
@@ -839,6 +842,7 @@ Sequencer::Sequencer(int id, int sequencerSection, connectionType_t connection) 
 	registerEvent(button->TapButton, &Sequencer::tapButton, this);
 	registerEvent(button->LongPushButton, &Sequencer::longPushButton, this);
 	registerEvent(tempoSlider->updateSlider, &Sequencer::updateTempoSlider, this);
+	registerEvent(widthSlider->updateSlider, &Sequencer::updateWidthSlider, this);
 
 }
 
@@ -877,6 +881,7 @@ void Sequencer::update() {
 
 	updateTableUI(button);
 	updateTableUI(tempoSlider, showSlider && showTableSequencerCells);
+	updateTableUI(widthSlider, showSlider && showTableSequencerCells);
 	updateTableUI(tableSequencerCells, showTableSequencerCells);
 	updateTableUI(tableSequencerPitch, showTableSequencerPitch);
 	updateTableUI(tableSequencerVolume, showTableSequencerVolume);
@@ -934,6 +939,10 @@ void Sequencer::updateTempoSlider(TableSlider::updateSliderArgs & a) {
 	SoundEngine::I().getSection(sequencerSection).sequence(0).bars = bars;
 }
 
+void Sequencer::updateWidthSlider(TableSlider::updateSliderArgs & a) {
+	pulseWidth = ofMap(a.value, 0, 100.0f, 0.0f, 0.999f);
+
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
