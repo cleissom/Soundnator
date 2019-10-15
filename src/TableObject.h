@@ -131,13 +131,19 @@ public:
 	void patch();
 	void updateAngleValue(float angle);
 	void updateVolume(TableSlider::updateSliderArgs & a);
+	void updateAttack(TableSlider::updateSliderArgs & a);
+	void updateRelease(TableSlider::updateSliderArgs & a);
 	void Tap(TableButton::TapButtonArgs & a);
+
+	void LongPush(TableButton::LongPushButtonArgs & a);
 
 private:
 	oscillatorMode actualMode;
 	bool actualModeChanged;
 	TableButton*  button;
 	TableSlider*  slider;
+	TableSlider*  ASlider;
+	TableSlider*  RSlider;
 	pdsp::ValueControl  pitch_ctrl;
 	pdsp::Amp           ampEnv;
 	pdsp::Amp           amp;
@@ -146,9 +152,20 @@ private:
 	pdsp::VAOscillator  pulse;
 	pdsp::ADSR			env;
 
+	pdsp::ValueControl attack_ctrl;
+	pdsp::ValueControl release_ctrl;
+	bool showAttackSlider = false;
+	bool showReleaseSlider = false;
+
 	ofImage sineImg;
 	ofImage sawImg;
 	ofImage pulseImg;
+
+	const float attackMin = 0.0f;
+	const float attackMax = 200.0f;
+	const float releaseMin = 0.0f;
+	const float releaseMax = 800.0f;
+
 };
 
 

@@ -10,8 +10,8 @@ SoundDispatcher::SoundDispatcher() {
 	TableObjects.insert(std::make_pair(3, new Filter(3)));
 	TableObjects.insert(std::make_pair(4, new Sequencer(4,0)));
 	TableObjects.insert(std::make_pair(5, new Sequencer(5,1)));
-	TableObjects.insert(std::make_pair(6, new Sampler(6)));
-	TableObjects.insert(std::make_pair(7, new Delay(7)));
+	TableObjects.insert(std::make_pair(6, new Delay(6)));
+	TableObjects.insert(std::make_pair(7, new Sampler(7)));
 	TableObjects.insert(std::make_pair(OUTPUT, new Output(OUTPUT)));
 
 	registerEvent(InputGestureDirectFingers::I().enterCursor, &SoundDispatcher::addCursor, this);

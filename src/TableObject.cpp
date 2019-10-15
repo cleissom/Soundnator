@@ -320,8 +320,16 @@ Oscillator::Oscillator(int id) : Generator(id) {
 	button = new TableButton(180.0f, 0.075f);
 	slider = new TableSlider(270.0f, 0.06f);
 	registerEvent(button->TapButton, &Oscillator::Tap, this);
+	registerEvent(button->LongPushButton, &Oscillator::LongPush, this);
 	registerEvent(slider->updateSlider, &Oscillator::updateVolume, this);
 
+	ASlider = new TableSlider(270.0f, 0.08f, false, 100.0f, 0.0, 0, 1.0f, 1.0f, false, true, false, "A");
+	registerEvent(ASlider->updateSlider, &Oscillator::updateAttack, this);
+	ASlider->setSliderValue(0.0);
+
+	RSlider = new TableSlider(270.0f, 0.1f, false, 100.0f, 0.0, 0, 1.0f, 1.0f, false, true, false, "R");
+	registerEvent(RSlider->updateSlider, &Oscillator::updateRelease, this);
+	RSlider->setSliderValue(50.0);
 
 	loadImg(sineImg, "1.png");
 	loadImg(sawImg, "2.png");
@@ -356,6 +364,8 @@ void Oscillator::update() {
 
 	updateTableUI(button);
 	updateTableUI(slider);
+	updateTableUI(ASlider, showAttackSlider);
+	updateTableUI(RSlider, showReleaseSlider);
 
 	if (connectionUpdated) {
 		if (*getPrecedingObj(this, CONTROL)) {
@@ -385,6 +395,9 @@ void Oscillator::patch() {
 	pitch_in >> pulse.in_pitch();
 	pitch_ctrl.enableSmoothing(100.0f);
 
+	attack_ctrl >> env.in_attack();
+	release_ctrl >> env.in_release();
+
 	amp.set(1.0f);
 	ampEnv.set(1.0f);
 
@@ -398,8 +411,17 @@ void Oscillator::updateAngleValue(float angle) {
 }
 
 void Oscillator::updateVolume(TableSlider::updateSliderArgs& a) {
-	cout << "update volume to: " << (a.value / 100.0f) << endl;
 	amp.set(a.value / 100.0f);
+}
+
+void Oscillator::updateAttack(TableSlider::updateSliderArgs& a) {
+	float value = ofMap(a.value, 0, 100, attackMin, attackMax);
+	attack_ctrl.set(value);
+}
+
+void Oscillator::updateRelease(TableSlider::updateSliderArgs& a) {
+	float value = ofMap(a.value, 0, 100, releaseMin, releaseMax);
+	release_ctrl.set(value);
 }
 
 
@@ -420,6 +442,12 @@ void Oscillator::Tap(TableButton::TapButtonArgs& a) {
 		break;
 	}
 	actualModeChanged = true;
+}
+
+void Oscillator::LongPush(TableButton::LongPushButtonArgs& a) {
+
+	showAttackSlider = !showAttackSlider;
+	showReleaseSlider = !showReleaseSlider;
 }
 
 

@@ -98,7 +98,6 @@ public:
 
 	void fingersEnter(InputGestureDirectFingers::enterCursorArgs & a);
 	void fingersUpdate(InputGestureDirectFingers::updateCursorArgs & a);
-	void fingersTap(InputGestueTap::TapArgs & a);
 
 private:
 	FigureGraphic* base;

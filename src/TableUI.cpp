@@ -7,7 +7,6 @@ void drawCircleOnPolygon(Figures::Polygon* polygon, float step = 30.0f) {
 	}
 }
 
-
 TableUIBase::TableUIBase(float angle, float distanceOffset) : angle(angle), distanceOffset(distanceOffset) {
 };
 
@@ -90,7 +89,6 @@ void TableButton::fingersEnter(InputGestureDirectFingers::enterCursorArgs& a) {
 };
 
 void TableButton::fingersTap(InputGestueTap::TapArgs& a) {
-	cout << "tap" << endl;
 	commomTableButtonArgs args;
 	args.id = 1;
 	ofNotifyEvent(TapButton, args);
@@ -108,8 +106,6 @@ void TableButton::isHidden(bool is) {
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
 
 TableSlider::TableSlider(float angle, float distanceOffset, bool discreteSlider, float sliderMaxValue, float sliderMinValue, int id, float sliderSize, float circleSize, bool invertY, bool tangent, bool showTopText, string bottomText) : TableUIBase(angle, distanceOffset), discreteSlider(discreteSlider), sliderMaxValue(sliderMaxValue), sliderMinValue(sliderMinValue), id(id), sliderSize(sliderSize), circleSize(circleSize), invertY(invertY), lastValue(sliderMaxValue), tangent(tangent), showTopText(showTopText), bottomText(bottomText)  {
 	scaledHeight = sliderSize * sliderLineHeight;
@@ -134,7 +130,6 @@ TableSlider::TableSlider(float angle, float distanceOffset, bool discreteSlider,
 	sliderCircle->canCollide(false);
 	sliderCircle->isHidden(true);
 
-	
 	polygon = new Figures::Polygon();
 	polygon->AddVertex(ofPoint(-(linePolygonWidth / 2.0f), 0.0f));
 	polygon->AddVertex(ofPoint((linePolygonWidth / 2.0f), 0.0f));
@@ -162,8 +157,6 @@ TableSlider::TableSlider(float angle, float distanceOffset, bool discreteSlider,
 	sliderFillLine->canCollide(false);
 	sliderFillLine->hasAlpha(true);
 	sliderFillLine->isHidden(true);
-
-	
 
 	updatePosition(0, 0);
 };
@@ -234,13 +227,11 @@ void TableSlider::draw() {
 		if (!bottomText.empty()) {
 			font.drawString(bottomText, true, 0, -stringSpacing, true);
 		}
-
 		ofPopMatrix();
 	}
 }
 
 void TableSlider::fingersEnter(InputGestureDirectFingers::enterCursorArgs& a) {
-	cout << "fingers enter slider" << endl;
 };
 void TableSlider::fingersUpdate(InputGestureDirectFingers::updateCursorArgs& a) {
 	float percentage = ((a.finger->getDistance(basePoint.x, basePoint.y)) / scaledHeight);
@@ -250,9 +241,6 @@ void TableSlider::fingersUpdate(InputGestureDirectFingers::updateCursorArgs& a) 
 		percentageValue = round(percentageValue);
 	}
 
-
-	cout << "fingers update: " << percentageValue << endl;
-
 	updateSliderArgs args;
 	args.id = id;
 	args.value = percentageValue;
@@ -260,11 +248,6 @@ void TableSlider::fingersUpdate(InputGestureDirectFingers::updateCursorArgs& a) 
 
 	lastValue = percentageValue;
 };
-
-void TableSlider::fingersTap(InputGestueTap::TapArgs& a) {
-	cout << "tap slider" << endl;
-};
-
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -394,6 +377,7 @@ void TableSequencerCells::updateCallback(TableCell::tapCellArgs & a) {
 	ofNotifyEvent(updateTableSequencerCells, args);
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 TableSequencerSliders::TableSequencerSliders(float angle, float distanceOffset, int cellsNum, float openingAngle, float maxValue, float minValue, bool clockwise) : TableUIBase(angle, distanceOffset), cellsNum(cellsNum) {
 	int gaps = cellsNum - 1;
@@ -443,8 +427,7 @@ void TableSequencerSliders::updateCallback(TableSlider::updateSliderArgs & a) {
 	ofNotifyEvent(updateTableSequencerSliders, args);
 }
 
-
-
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 TableInfoCircle::TableInfoCircle(float angle, float distanceOffset, float openingAngle, bool clockwise, bool discrete, int cellsNum, float maxValue, float minValue) : TableUIBase(angle, distanceOffset), openingAngle(openingAngle), clockwise(clockwise), discrete(discrete), cellsNum(cellsNum), maxValue(maxValue), minValue(minValue) {
 
