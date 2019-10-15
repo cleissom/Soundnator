@@ -422,28 +422,121 @@ void Oscillator::Tap(TableButton::TapButtonArgs& a) {
 
 static vector<float> akebono{ 72.0f, 74.0f, 75.0f, 79.0f, 80.0f, 84.0f, 86.0f, 87.0f };
 
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+Sampler::Sampler(int id) : Generator(id) {
+	patch();
+
+	angleMinValue = -TWO_PI;
+	angleMaxValue = 2 * TWO_PI;
+
+	actualMode = SINE;
+
+	button = new TableButton(180.0f, 0.075f);
+	slider = new TableSlider(270.0f, 0.075f);
+	registerEvent(button->TapButton, &Sampler::Tap, this);
+	registerEvent(slider->updateSlider, &Sampler::updateVolume, this);
+
+	loadImg(sineImg, "1.png");
+	loadImg(sawImg, "2.png");
+	loadImg(pulseImg, "3.png");
+
+	violin.load("./data/a.wav");
+	sampler.addSample(&violin);
+}
+
+
+void Sampler::update() {
+
+	/*switch (actualMode) {
+	case SINE:
+		ampEnv.in_signal().disconnectIn();
+		sine.out_sine() >> ampEnv;
+		button->setImage(sineImg);
+		break;
+	case SAW:
+		ampEnv.in_signal().disconnectIn();
+		saw.out_saw() >> ampEnv;
+		button->setImage(sawImg);
+		break;
+	case PULSE:
+		ampEnv.in_signal().disconnectIn();
+		pulse.out_pulse() >> ampEnv;
+		button->setImage(pulseImg);
+		break;
+	default:
+		break;
+	}*/
+
+	updateTableUI(button);
+	updateTableUI(slider);
+
+	/*if (connectionUpdated) {
+		if (*getPrecedingObj(this, CONTROL)) {
+			env >> ampEnv.in_mod();
+			cout << "control" << endl;
+		}
+		else {
+			env.disconnectOut();
+			cout << "not control" << endl;
+		}
+		connectionUpdated = false;
+	}*/
+}
+
+
+void Sampler::patch() {
+
+	trig_in >> sampler >> amp * dB(-12.0f) >> output;
+	trig_in >> env.set(0,200,200) >> amp.in_mod();
+	
+
+	//pitch_ctrl >> sampler.in_pitch();
+	//pitch_in >> sampler.in_pitch();
+	//-60.0 >> sampler.in_pitch();
+
+	pitch_ctrl.enableSmoothing(100.0f);
+
+	amp.set(1.0f);
+	ampEnv.set(1.0f);
+
+	this->setToScope(amp);
+}
+
+
+void Sampler::updateAngleValue(float angle) {
+	//pitch_ctrl.set(akebono[ofClamp(angle, 0, akebono.size() - 1)]);
+	pitch_ctrl.set(ofMap(angle, -TWO_PI, 2 * TWO_PI, 36, 72));
+}
+
+void Sampler::updateVolume(TableSlider::updateSliderArgs& a) {
+	cout << "update volume to: " << (a.value / 100.0f) << endl;
+	amp.set(a.value / 100.0f);
+}
+
+
+void Sampler::Tap(TableButton::TapButtonArgs& a) {
+
+	switch (actualMode)
+	{
+	case SINE:
+		actualMode = SAW;
+		break;
+	case SAW:
+		actualMode = PULSE;
+		break;
+	case PULSE:
+		actualMode = SINE;
+		break;
+	default:
+		break;
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Effect::Effect(int id, connectionType_t connection) : TableObject(id, connection) {
-	patch();
-}
-
-
-void Effect::patch() {
-
-	input >> filter >> amp >> output;
-	this->setToScope(amp);
-	cutoff_ctrl >> filter.in_cutoff();
-	amp.set(1.0f);
-}
-
-void Effect::addCursor(InputGestureDirectFingers::newCursorArgs & a) {
-}
-
-void Effect::updateAngleValue(float angle) {
-	float cutoff = ofMap(angle, 0, 2.0f * M_2PI, 48.0f, 96.0f);
-	cutoff_ctrl.set(cutoff);
 }
 
 bool Effect::objectIsConnectableTo(TableObject* obj) {
@@ -452,6 +545,32 @@ bool Effect::objectIsConnectableTo(TableObject* obj) {
 
 bool Effect::objectIsConnectableToOutput() {
 	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Filter::Filter(int id) : Effect(id) {
+	patch();
+
+	angleMinValue = -TWO_PI;
+	angleMaxValue = TWO_PI;
+}
+
+
+void Filter::patch() {
+
+	input >> filter >> amp >> output;
+	this->setToScope(amp);
+	cutoff_ctrl >> filter.in_cutoff();
+	amp.set(1.0f);
+}
+
+void Filter::addCursor(InputGestureDirectFingers::newCursorArgs & a) {
+}
+
+void Filter::updateAngleValue(float angle) {
+	float cutoff = ofMap(angle, -TWO_PI, TWO_PI, 36.0f, 130.0f);
+	cutoff_ctrl.set(cutoff);
 }
 
 
@@ -507,17 +626,18 @@ Sequencer::Sequencer(int id, int sequencerSection, connectionType_t connection) 
 
 	SoundEngine::I().getSection(sequencerSection).launch(0);
 
-	tableSequencerCells = new TableSequencerCells(0.0f, 0.065f, beatsNum, 320.0f);
+	tableSequencerCells = new TableSequencerCells(0.0f, 0.075f, beatsNum, 320.0f);
 	tableSequencerCells->updateSequencerCells(beats[actualSequence]);
 
-	tableSequencerPitch = new TableSequencerSliders(-10.0f, 0.085f, beatsNum, 320.0f, 12, -12);
+	tableSequencerPitch = new TableSequencerSliders(-10.0f, 0.105f, beatsNum, 320.0f, 12, -12);
 	tableSequencerPitch->updateSequencerSliders(pitches[actualSequence]);
 
-	tableSequencerVolume = new TableSequencerSliders(-10.0f, 0.085f, beatsNum, 320.0f);
+	tableSequencerVolume = new TableSequencerSliders(-10.0f, 0.105f, beatsNum, 320.0f);
 	tableSequencerVolume->updateSequencerSliders(volumes[actualSequence]);
 
 	button = new TableButton(20.0f, 0.09f);
 	tempoSlider = new TableSlider(-90.0f, 0.15f, true, 2.0f);
+	info = new TableInfoCircle(0, 0.055, 160, true, true, 4, 4.0f, 0.0f);
 
 	registerEvent(tableSequencerCells->updateTableSequencerCells, &Sequencer::updateTableSequencerCells, this);
 	registerEvent(tableSequencerPitch->updateTableSequencerSliders, &Sequencer::updateTableSequencerPitch, this);
@@ -566,12 +686,15 @@ void Sequencer::update() {
 	updateTableUI(tableSequencerCells, showTableSequencerCells);
 	updateTableUI(tableSequencerPitch, showTableSequencerPitch);
 	updateTableUI(tableSequencerVolume, showTableSequencerVolume);
+	updateTableUI(info);
 
 	tableSequencerCells->setActiveCell(int(ofMap(SoundEngine::I().getSection(sequencerSection).sequence(0).meter_percent(), 0, 0.95, 0, 15)));
 }
 
 void Sequencer::updateAngleValue(float angle) {
-	int newSequenceValue = int(ofMap(angle, 0, TWO_PI, 0, 3, true));
+	float sequenceValueContinuous = ofMap(angle, 0, TWO_PI, 0, 3.99, true);
+	info->setValue(sequenceValueContinuous);
+	int newSequenceValue = int(sequenceValueContinuous);
 	if (newSequenceValue != actualSequence) {
 		actualSequence = newSequenceValue;
 		tableSequencerCells->updateSequencerCells(beats[actualSequence]);

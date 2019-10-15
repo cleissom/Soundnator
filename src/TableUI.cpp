@@ -268,7 +268,7 @@ void TableSlider::fingersTap(InputGestueTap::TapArgs& a) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TableCell::TableCell(float angle, float distanceOffset, float openingAngle, float thickness, bool clockwise, int id) : TableUIBase(angle, distanceOffset), openingAngle(openingAngle), clockwise(clockwise), id(id) {
+TableCell::TableCell(float angle, float distanceOffset, float openingAngle, float thickness, bool clockwise, int id, bool registerToEvents) : TableUIBase(angle, distanceOffset), openingAngle(openingAngle), clockwise(clockwise), id(id) {
 	Figures::Polygon* polygon = new Figures::Polygon();
 
 	// inner arc
@@ -283,7 +283,9 @@ TableCell::TableCell(float angle, float distanceOffset, float openingAngle, floa
 	}
 
 	base = new FigureGraphic(polygon);
-	this->registerFingerEvents(base);
+	if (registerToEvents) {
+		this->registerFingerEvents(base);
+	}
 	base->isHidden(true);
 	base->hasAlpha(true);
 
@@ -439,4 +441,135 @@ void TableSequencerSliders::updateCallback(TableSlider::updateSliderArgs & a) {
 	args.id = a.id;
 	args.value = a.value;
 	ofNotifyEvent(updateTableSequencerSliders, args);
+}
+
+
+
+
+TableInfoCircle::TableInfoCircle(float angle, float distanceOffset, float openingAngle, bool clockwise, bool discrete, int cellsNum, float maxValue, float minValue) : TableUIBase(angle, distanceOffset), openingAngle(openingAngle), clockwise(clockwise), discrete(discrete), cellsNum(cellsNum), maxValue(maxValue), minValue(minValue) {
+
+	Figures::Polygon* polygon = new Figures::Polygon();
+
+	polygon->AddVertex(ofPoint(0.0f, 0.0f));
+	polygon->AddVertex(ofPoint(1.0f, 0.7f));
+	polygon->AddVertex(ofPoint(1.0f, -0.7f));
+	arrow = new FigureGraphic(polygon);
+	arrow->isHidden(true);
+	arrow->canCollide(false);
+
+
+	if (discrete) {
+		int gaps = cellsNum - 1;
+		float totalCellOpeningAngle = openingAngle - float(gaps) * gapAngle;
+		float cellOpeningAngle = totalCellOpeningAngle / float(cellsNum);
+
+		float cellAngle;
+
+		for (int i = 0; i <= cellsNum - 1; i++) {
+			if (clockwise) {
+				cellAngle = ofWrapDegrees(angle - ((float(i) * cellOpeningAngle) + (float(i) * gapAngle)));
+			}
+			else {
+				cellAngle = ofWrapDegrees(angle + ((float(i) * cellOpeningAngle) + (float(i) * gapAngle)));
+			}
+			discreteCells.push_back(new TableCell(cellAngle, distanceOffset, cellOpeningAngle, thickness, clockwise, i, false));
+
+		}
+	}
+	else {
+		continuousCell = new TableCell(angle, distanceOffset, openingAngle, thickness, clockwise);
+	}
+	
+
+
+	updatePosition(0, 0);
+};
+
+void TableInfoCircle::updateTransformationMatrix() {
+	ofMatrix4x4 M;
+	M.makeIdentityMatrix();
+
+	M.glTranslate(this->getX(), this->getY(), 0);
+	M.glRotate(this->getAngle(), 0, 0, 1);
+
+
+	if (discrete) {
+		for (auto cell : discreteCells) {
+			cell->updatePosition(this->getX(), this->getY());
+		}
+	}
+	else {
+		continuousCell->updatePosition(this->getX(), this->getY());
+
+	}
+
+	if (clockwise) {
+		M.glScale(1.0f, -1.0f, 1.0f);
+	}
+
+	float openingAngleRatio = openingAngle * (lastValue / (maxValue - minValue));
+	M.glRotate(openingAngleRatio, 0, 0, 1);
+	M.glTranslate(distanceOffset + thickness, 0, 0);
+	M.glScale(0.01f, 0.01f, 0);
+
+	
+
+	arrow->transformation = M;
+
+}
+
+void TableInfoCircle::update() {
+	if (discrete) {
+		int activeCell = int((lastValue) / ((maxValue - minValue) / float(cellsNum)));
+		if (lastValue == maxValue) {
+			activeCell -= 1;
+		}
+		for (int i = 0; i <= cellsNum - 1; i++) {
+			discreteCells[i]->isSelected(i == activeCell);
+		}
+	}
+}
+
+void TableInfoCircle::draw() {
+	if (!fillCellIsHidden) {
+		ofPushMatrix();
+
+		ofTranslate(this->getX(), this->getY(), 0);
+		ofRotate(this->getAngle(), 0, 0, 1);
+		ofScale(1, -1, 1);
+
+		ofSetColor(255);
+		ofFill();
+		ofBeginShape();
+
+		float openingAngleRatio = openingAngle * (lastValue / (maxValue - minValue));
+
+		// inner arc
+		float step_value = M_PI / 80.0f;
+		for (float i = 0.0f; i < ofDegToRad(openingAngleRatio); i += step_value) {
+			ofVertex(ofPoint(distanceOffset*cos(i), distanceOffset*sin(i)));
+		}
+
+		// outer arc
+		for (float i = ofDegToRad(openingAngleRatio); i > 0.0f; i -= step_value) {
+			ofVertex(ofPoint((distanceOffset + thickness)*cos(i), (distanceOffset + thickness)*sin(i)));
+		}
+
+		ofEndShape(true);
+
+		ofPopMatrix();
+	}
+}
+
+void TableInfoCircle::isHidden(bool is) {
+	arrow->isHidden(is);
+	if (discrete) {
+		for (auto cell : discreteCells) {
+			cell->isHidden(is);
+		}
+	}
+	else {
+		continuousCell->isHidden(is);
+		fillCellIsHidden = is;
+	}
 }

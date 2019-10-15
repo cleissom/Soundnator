@@ -152,18 +152,64 @@ private:
 };
 
 
+class Sampler : public Generator {
+
+public:
+	typedef enum { SINE, SAW, PULSE } oscillatorMode;
+
+	Sampler(int id = -1);
+	Sampler(const Sampler & other) { patch(); } // you need this to use std::vector with your class, otherwise will not compile
+
+	void update();
+	void patch();
+	void updateAngleValue(float angle);
+	void updateVolume(TableSlider::updateSliderArgs & a);
+	void Tap(TableButton::TapButtonArgs & a);
+
+private:
+	oscillatorMode actualMode;
+	int choose = 0;
+	TableButton*  button;
+	TableSlider*  slider;
+	TableInfoCircle*  info;
+	pdsp::ValueControl  pitch_ctrl;
+	pdsp::Amp           ampEnv;
+	pdsp::Amp           amp;
+	pdsp::VAOscillator  sine;
+	pdsp::VAOscillator  saw;
+	pdsp::VAOscillator  pulse;
+	pdsp::AHR			env;
+
+	ofImage sineImg;
+	ofImage sawImg;
+	ofImage pulseImg;
+
+	pdsp::SampleBuffer violin;
+	pdsp::Sampler sampler;
+};
+
 class Effect : public TableObject {
 
 public:
 
 	Effect(int id = -1, connectionType_t connection = AUDIO);
-	Effect(const Effect  & other) { patch(); } // you need this to use std::vector with your class, otherwise will not compile
+	bool objectIsConnectableTo(TableObject* obj);
+	bool objectIsConnectableToOutput();
+
+
+private:
+};
+
+class Filter : public Effect {
+
+public:
+
+	Filter(int id = -1);
+	Filter(const Filter  & other) { patch(); } // you need this to use std::vector with your class, otherwise will not compile
 	void patch();
 
 	void addCursor(InputGestureDirectFingers::newCursorArgs & a);
 	void updateAngleValue(float angle);
-	bool objectIsConnectableTo(TableObject* obj);
-	bool objectIsConnectableToOutput();
 
 
 private:
@@ -236,6 +282,7 @@ private:
 	TableSequencerSliders*	tableSequencerVolume;
 	TableButton*			button;
 	TableSlider*			tempoSlider;
+	TableInfoCircle*		info;
 };
 
 

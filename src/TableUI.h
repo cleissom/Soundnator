@@ -144,7 +144,7 @@ public:
 
 	ofEvent<tapCellArgs> tapCell;
 
-	TableCell(float angle = 0.0f, float distanceOffset = 0.075f, float openingAngle = 90, float thickness = 0.025f, bool clockwise = false, int id = 0);
+	TableCell(float angle = 0.0f, float distanceOffset = 0.075f, float openingAngle = 90, float thickness = 0.025f, bool clockwise = false, int id = 0, bool registerToEvents = true);
 	void updateTransformationMatrix();
 	void isHidden(bool is);
 
@@ -220,5 +220,38 @@ private:
 	const float gapAngle = 2.0f;
 };
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+class TableInfoCircle : public TableUIBase {
+public:
+	TableInfoCircle(float angle = 0.0f, float distanceOffset = 0.075f, float openingAngle = 180, bool clockwise = true, bool discrete = true, int cellsNum = 3, float maxValue = 100.0f, float minValue = 0.0f);
+
+	void updateTransformationMatrix();
+	void update();
+	void draw();
+	void isHidden(bool is);
+	void setValue(float value) { this->lastValue = value; };
+
+private:
+	float openingAngle;
+	bool clockwise;
+	bool discrete;
+	int cellsNum;
+	float maxValue;
+	float minValue;
+
+	float lastValue = 75.0f;
+
+	TableCell* continuousCell;
+	bool fillCellIsHidden;
+
+	vector<TableCell*> discreteCells;
+
+	FigureGraphic* arrow;
+
+	const float thickness = 0.01;
+	const float arrowScale = 0.01f;
+	const float gapAngle = 2.0f;
+};
 
 #endif
