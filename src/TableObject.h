@@ -135,7 +135,7 @@ public:
 
 private:
 	oscillatorMode actualMode;
-	int choose = 0;
+	bool actualModeChanged;
 	TableButton*  button;
 	TableSlider*  slider;
 	pdsp::ValueControl  pitch_ctrl;

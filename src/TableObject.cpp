@@ -331,24 +331,27 @@ Oscillator::Oscillator(int id) : Generator(id) {
 
 void Oscillator::update() {
 
-	switch (actualMode) {
-	case SINE:
-		ampEnv.in_signal().disconnectIn();
-		sine.out_sine() >> ampEnv;
-		button->setImage(sineImg);
-		break;
-	case SAW:
-		ampEnv.in_signal().disconnectIn();
-		saw.out_saw() >> ampEnv;
-		button->setImage(sawImg);
-		break;
-	case PULSE:
-		ampEnv.in_signal().disconnectIn();
-		pulse.out_pulse() >> ampEnv;
-		button->setImage(pulseImg);
-		break;
-	default:
-		break;
+	if (actualModeChanged) {
+		switch (actualMode) {
+		case SINE:
+			ampEnv.in_signal().disconnectIn();
+			sine.out_sine() >> ampEnv;
+			button->setImage(sineImg);
+			break;
+		case SAW:
+			ampEnv.in_signal().disconnectIn();
+			saw.out_saw() >> ampEnv;
+			button->setImage(sawImg);
+			break;
+		case PULSE:
+			ampEnv.in_signal().disconnectIn();
+			pulse.out_pulse() >> ampEnv;
+			button->setImage(pulseImg);
+			break;
+		default:
+			break;
+		}
+		actualModeChanged = false;
 	}
 
 	updateTableUI(button);
@@ -416,6 +419,7 @@ void Oscillator::Tap(TableButton::TapButtonArgs& a) {
 	default:
 		break;
 	}
+	actualModeChanged = true;
 }
 
 
