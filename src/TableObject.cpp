@@ -318,7 +318,7 @@ Oscillator::Oscillator(int id) : Generator(id) {
 	actualMode = SINE;
 
 	button = new TableButton(180.0f, 0.075f);
-	slider = new TableSlider(270.0f, 0.075f);
+	slider = new TableSlider(270.0f, 0.06f);
 	registerEvent(button->TapButton, &Oscillator::Tap, this);
 	registerEvent(slider->updateSlider, &Oscillator::updateVolume, this);
 
@@ -626,18 +626,18 @@ Sequencer::Sequencer(int id, int sequencerSection, connectionType_t connection) 
 
 	SoundEngine::I().getSection(sequencerSection).launch(0);
 
-	tableSequencerCells = new TableSequencerCells(0.0f, 0.075f, beatsNum, 320.0f);
+	tableSequencerCells = new TableSequencerCells(0.0f, 0.07f, beatsNum, 320.0f);
 	tableSequencerCells->updateSequencerCells(beats[actualSequence]);
 
-	tableSequencerPitch = new TableSequencerSliders(-10.0f, 0.105f, beatsNum, 320.0f, 12, -12);
+	tableSequencerPitch = new TableSequencerSliders(-10.0f, 0.1f, beatsNum, 320.0f, 12, -12);
 	tableSequencerPitch->updateSequencerSliders(pitches[actualSequence]);
 
-	tableSequencerVolume = new TableSequencerSliders(-10.0f, 0.105f, beatsNum, 320.0f);
+	tableSequencerVolume = new TableSequencerSliders(-10.0f, 0.1f, beatsNum, 320.0f);
 	tableSequencerVolume->updateSequencerSliders(volumes[actualSequence]);
 
 	button = new TableButton(20.0f, 0.09f);
 	tempoSlider = new TableSlider(-90.0f, 0.15f, true, 2.0f);
-	info = new TableInfoCircle(0, 0.055, 160, true, true, 4, 4.0f, 0.0f);
+	info = new TableInfoCircle(0, 0.05, 160, true, true, 4, 4.0f, 0.0f);
 
 	registerEvent(tableSequencerCells->updateTableSequencerCells, &Sequencer::updateTableSequencerCells, this);
 	registerEvent(tableSequencerPitch->updateTableSequencerSliders, &Sequencer::updateTableSequencerPitch, this);
