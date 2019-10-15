@@ -507,7 +507,7 @@ void TableInfoCircle::updateTransformationMatrix() {
 		M.glScale(1.0f, -1.0f, 1.0f);
 	}
 
-	float openingAngleRatio = openingAngle * (lastValue / (maxValue - minValue));
+	float openingAngleRatio = openingAngle * ((lastValue - minValue) / (maxValue - minValue));
 	M.glRotate(openingAngleRatio, 0, 0, 1);
 	M.glTranslate(distanceOffset + thickness, 0, 0);
 	M.glScale(0.01f, 0.01f, 0);
@@ -542,7 +542,7 @@ void TableInfoCircle::draw() {
 		ofFill();
 		ofBeginShape();
 
-		float openingAngleRatio = openingAngle * (lastValue / (maxValue - minValue));
+		float openingAngleRatio = openingAngle * ((lastValue - minValue) / (maxValue - minValue));
 
 		// inner arc
 		float step_value = M_PI / 80.0f;

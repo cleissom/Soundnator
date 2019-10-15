@@ -558,27 +558,183 @@ Filter::Filter(int id) : Effect(id) {
 
 	angleMinValue = -TWO_PI;
 	angleMaxValue = TWO_PI;
+
+	button = new TableButton(180.0, 0.075);
+	registerEvent(button->TapButton, &Filter::Tap, this);
+
+	slider = new TableSlider(270.0f, 0.06f);
+	registerEvent(slider->updateSlider, &Filter::updateSlider, this);
+
+	info = new TableInfoCircle(150, 0.05, 150.0, true, false, 0, filterMaxValue, filterMinValue);
 }
 
 
 void Filter::patch() {
 
-	input >> filter >> amp >> output;
-	this->setToScope(amp);
+	input >> filter >> ampWet >>	amp;
+	input			>> ampDry >>	amp;
+									amp >> output;
+
 	cutoff_ctrl >> filter.in_cutoff();
+	cutoff_ctrl.enableSmoothing(50.0f);
+
 	amp.set(1.0f);
+	ampDry.set(0.0f);
+	ampWet.set(1.0f);
+
+	this->setToScope(amp);
 }
 
-void Filter::addCursor(InputGestureDirectFingers::newCursorArgs & a) {
+void Filter::update() {
+
+	if (actualModeChanged) {
+		switch (actualMode)
+		{
+		case LOWPASS:
+			pdsp::VAFilter::LowPass24 >> filter.in_mode();
+			break;
+		case HIGHPASS:
+			pdsp::VAFilter::HighPass24 >> filter.in_mode();
+			break;
+		case BANDPASS:
+			pdsp::VAFilter::BandPass24 >> filter.in_mode();
+			break;
+		default:
+			break;
+		}
+		actualModeChanged = false;
+	}
+
+	updateTableUI(button);
+	updateTableUI(info);
+	updateTableUI(slider);
 }
 
 void Filter::updateAngleValue(float angle) {
-	float cutoff = ofMap(angle, -TWO_PI, TWO_PI, 36.0f, 130.0f);
+	float cutoff = ofMap(angle, -TWO_PI, TWO_PI, filterMinValue, filterMaxValue);
+	info->setValue(cutoff);
 	cutoff_ctrl.set(cutoff);
 }
 
+void Filter::Tap(TableButton::TapButtonArgs& a) {
+
+	switch (actualMode)
+	{
+	case LOWPASS:
+		actualMode = HIGHPASS;
+		break;
+	case HIGHPASS:
+		actualMode = BANDPASS;
+		break;
+	case BANDPASS:
+		actualMode = LOWPASS;
+		break;
+	default:
+		break;
+	}
+	actualModeChanged = true;
+}
+
+void Filter::updateSlider(TableSlider::updateSliderArgs& a) {
+	float wetness = ofMap(a.value, 0.0, 100.0, 0, 1.0);
+	ampWet.set(wetness);
+	ampDry.set(1.0 - wetness);
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Delay::Delay(int id) : Effect(id) {
+	patch();
+
+	angleMinValue = -TWO_PI;
+	angleMaxValue = TWO_PI;
+
+	button = new TableButton(180.0, 0.075);
+	registerEvent(button->TapButton, &Delay::Tap, this);
+
+	slider = new TableSlider(270.0f, 0.06f);
+	registerEvent(slider->updateSlider, &Delay::updateSlider, this);
+
+	info = new TableInfoCircle(150, 0.05, 150.0, true, false, 0, delayMaxValue, delayMinValue);
+}
+
+
+void Delay::patch() {
+
+	input >> delay >> amp >> output;
+
+	time_ctrl >> delay.in_time();
+	feedback_ctrl >> delay.in_feedback();
+
+	feedback_ctrl.enableSmoothing(50.0f);
+	time_ctrl.enableSmoothing(50.0f);
+
+	feedback_ctrl.set(1.0f);
+	time_ctrl.set(0.0f);
+
+
+	amp.set(1.0f);
+
+	this->setToScope(amp);
+}
+
+void Delay::update() {
+
+	/*if (actualModeChanged) {
+		switch (actualMode)
+		{
+		case LOWPASS:
+			pdsp::VAFilter::LowPass24 >> filter.in_mode();
+			break;
+		case HIGHPASS:
+			pdsp::VAFilter::HighPass24 >> filter.in_mode();
+			break;
+		case BANDPASS:
+			pdsp::VAFilter::BandPass24 >> filter.in_mode();
+			break;
+		default:
+			break;
+		}
+		actualModeChanged = false;
+	}*/
+
+	updateTableUI(button);
+	updateTableUI(info);
+	updateTableUI(slider);
+}
+
+void Delay::updateAngleValue(float angle) {
+	float time = ofMap(angle, -TWO_PI, TWO_PI, delayMinValue, delayMaxValue);
+	info->setValue(time);
+	time_ctrl.set(time);
+}
+
+void Delay::Tap(TableButton::TapButtonArgs& a) {
+
+	switch (actualMode)
+	{
+	case LOWPASS:
+		actualMode = HIGHPASS;
+		break;
+	case HIGHPASS:
+		actualMode = BANDPASS;
+		break;
+	case BANDPASS:
+		actualMode = LOWPASS;
+		break;
+	default:
+		break;
+	}
+	actualModeChanged = true;
+}
+
+void Delay::updateSlider(TableSlider::updateSliderArgs& a) {
+	float feedback = ofMap(a.value, 0.0, 100.0, 0, 1.0);
+	feedback_ctrl.set(feedback);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 Controller::Controller(int id, connectionType_t connection) : TableObject(id, connection) {
 }

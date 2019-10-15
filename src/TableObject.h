@@ -201,22 +201,64 @@ private:
 };
 
 class Filter : public Effect {
-
 public:
+	typedef enum { LOWPASS, HIGHPASS, BANDPASS } filterMode;
 
 	Filter(int id = -1);
 	Filter(const Filter  & other) { patch(); } // you need this to use std::vector with your class, otherwise will not compile
 	void patch();
 
-	void addCursor(InputGestureDirectFingers::newCursorArgs & a);
+	void update();
 	void updateAngleValue(float angle);
-
+	void Tap(TableButton::TapButtonArgs & a);
+	void updateSlider(TableSlider::updateSliderArgs & a);
 
 private:
+	filterMode actualMode = LOWPASS;
+	bool actualModeChanged = false;
+
+	const float filterMinValue = 36.0;
+	const float filterMaxValue = 130.0;
+
+	TableInfoCircle* info;
+	TableButton* button;
+	TableSlider* slider;
+
+	pdsp::Amp           ampDry;
+	pdsp::Amp           ampWet;
 	pdsp::Amp           amp;
 	pdsp::ValueControl	cutoff_ctrl;
 	pdsp::VAFilter      filter; // 24dB multimode filter
+};
 
+class Delay : public Effect {
+public:
+	typedef enum { LOWPASS, HIGHPASS, BANDPASS } filterMode;
+
+	Delay(int id = -1);
+	Delay(const Delay  & other) { patch(); } // you need this to use std::vector with your class, otherwise will not compile
+	void patch();
+
+	void update();
+	void updateAngleValue(float angle);
+	void Tap(TableButton::TapButtonArgs & a);
+	void updateSlider(TableSlider::updateSliderArgs & a);
+
+private:
+	filterMode actualMode = LOWPASS;
+	bool actualModeChanged = false;
+
+	const float delayMinValue = 0.0f;
+	const float delayMaxValue = 200.0f;
+
+	TableInfoCircle* info;
+	TableButton* button;
+	TableSlider* slider;
+
+	pdsp::Amp           amp;
+	pdsp::ValueControl	time_ctrl;
+	pdsp::ValueControl	feedback_ctrl;
+	pdsp::Delay			delay;
 };
 
 
