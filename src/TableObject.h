@@ -233,7 +233,7 @@ private:
 
 class Delay : public Effect {
 public:
-	typedef enum { LOWPASS, HIGHPASS, BANDPASS } filterMode;
+	typedef enum { FEEDBACK_DELAY, REVERB } delayMode;
 
 	Delay(int id = -1);
 	Delay(const Delay  & other) { patch(); } // you need this to use std::vector with your class, otherwise will not compile
@@ -245,7 +245,7 @@ public:
 	void updateSlider(TableSlider::updateSliderArgs & a);
 
 private:
-	filterMode actualMode = LOWPASS;
+	delayMode actualMode = FEEDBACK_DELAY;
 	bool actualModeChanged = false;
 
 	const float delayMinValue = 0.0f;
@@ -259,6 +259,9 @@ private:
 	pdsp::ValueControl	time_ctrl;
 	pdsp::ValueControl	feedback_ctrl;
 	pdsp::Delay			delay;
+	pdsp::BasiVerb		reverb;
+	pdsp::Switch		switcher;
+	pdsp::PatchNode		node;
 };
 
 

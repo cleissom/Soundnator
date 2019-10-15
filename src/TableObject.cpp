@@ -493,8 +493,8 @@ void Sampler::update() {
 void Sampler::patch() {
 
 	trig_in >> sampler >> amp * dB(-12.0f) >> output;
-	trig_in >> env.set(0,200,200) >> amp.in_mod();
-	
+	trig_in >> env.set(0, 200, 200) >> amp.in_mod();
+
 
 	//pitch_ctrl >> sampler.in_pitch();
 	//pitch_in >> sampler.in_pitch();
@@ -571,9 +571,9 @@ Filter::Filter(int id) : Effect(id) {
 
 void Filter::patch() {
 
-	input >> filter >> ampWet >>	amp;
-	input			>> ampDry >>	amp;
-									amp >> output;
+	input >> filter >> ampWet >> amp;
+	input >> ampDry >> amp;
+	amp >> output;
 
 	cutoff_ctrl >> filter.in_cutoff();
 	cutoff_ctrl.enableSmoothing(50.0f);
@@ -654,22 +654,31 @@ Delay::Delay(int id) : Effect(id) {
 
 	slider = new TableSlider(270.0f, 0.06f);
 	registerEvent(slider->updateSlider, &Delay::updateSlider, this);
+	slider->setSliderValue(50.0);
 
 	info = new TableInfoCircle(150, 0.05, 150.0, true, false, 0, delayMaxValue, delayMinValue);
+
+	actualModeChanged = true;
 }
 
 
 void Delay::patch() {
 
-	input >> delay >> amp >> output;
+	input >> reverb;
+	input >> delay;
+
+	node >> amp >> output;
 
 	time_ctrl >> delay.in_time();
 	feedback_ctrl >> delay.in_feedback();
+	
+	time_ctrl >> reverb.in_time();
+	feedback_ctrl >> reverb.in_damping();
 
-	feedback_ctrl.enableSmoothing(50.0f);
-	time_ctrl.enableSmoothing(50.0f);
+	feedback_ctrl.enableSmoothing(200.0f);
+	time_ctrl.enableSmoothing(200.0f);
 
-	feedback_ctrl.set(1.0f);
+	feedback_ctrl.set(0.5f);
 	time_ctrl.set(0.0f);
 
 
@@ -680,23 +689,23 @@ void Delay::patch() {
 
 void Delay::update() {
 
-	/*if (actualModeChanged) {
+	if (actualModeChanged) {
 		switch (actualMode)
 		{
-		case LOWPASS:
-			pdsp::VAFilter::LowPass24 >> filter.in_mode();
+		case FEEDBACK_DELAY:
+			node.disconnectIn();
+			delay >> node;
+			reverb >> SoundEngine::I().getEngine().blackhole();
 			break;
-		case HIGHPASS:
-			pdsp::VAFilter::HighPass24 >> filter.in_mode();
-			break;
-		case BANDPASS:
-			pdsp::VAFilter::BandPass24 >> filter.in_mode();
+		case REVERB:
+			node.disconnectIn();
+			reverb >> node;
 			break;
 		default:
 			break;
 		}
 		actualModeChanged = false;
-	}*/
+	}
 
 	updateTableUI(button);
 	updateTableUI(info);
@@ -713,14 +722,11 @@ void Delay::Tap(TableButton::TapButtonArgs& a) {
 
 	switch (actualMode)
 	{
-	case LOWPASS:
-		actualMode = HIGHPASS;
+	case FEEDBACK_DELAY:
+		actualMode = REVERB;
 		break;
-	case HIGHPASS:
-		actualMode = BANDPASS;
-		break;
-	case BANDPASS:
-		actualMode = LOWPASS;
+	case REVERB:
+		actualMode = FEEDBACK_DELAY;
 		break;
 	default:
 		break;
