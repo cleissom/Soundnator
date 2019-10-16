@@ -122,7 +122,7 @@ private:
 class Oscillator : public Generator {
 
 public:
-	typedef enum {SINE, SAW, PULSE} oscillatorMode;
+	typedef enum { SINE, SAW, PULSE } oscillatorMode;
 
 	Oscillator(int id = -1);
 	Oscillator(const Generator & other) { patch(); } // you need this to use std::vector with your class, otherwise will not compile
@@ -172,7 +172,7 @@ private:
 class Sampler : public Generator {
 
 public:
-	typedef enum { SINE, SAW, PULSE } oscillatorMode;
+	typedef enum { KICK, CLAP, MELODIC } InstrumentType;
 
 	Sampler(int id = -1);
 	Sampler(const Sampler & other) { patch(); } // you need this to use std::vector with your class, otherwise will not compile
@@ -183,8 +183,16 @@ public:
 	void updateVolume(TableSlider::updateSliderArgs & a);
 	void Tap(TableButton::TapButtonArgs & a);
 
+	void updateAttack(TableSlider::updateSliderArgs & a);
+
+	void updateRelease(TableSlider::updateSliderArgs & a);
+
+	void instrumentSliderUpdate(TableSlider::updateSliderArgs & a);
+
+	void LongPush(TableButton::LongPushButtonArgs & a);
+
 private:
-	oscillatorMode actualMode;
+	InstrumentType actualInstrument;
 	int choose = 0;
 	TableButton*  button;
 	TableSlider*  slider;
@@ -197,12 +205,35 @@ private:
 	pdsp::VAOscillator  pulse;
 	pdsp::AHR			env;
 
+
+	TableSlider*  ASlider;
+	TableSlider*  RSlider;
+	TableSlider*  instrumentSlider;
+	pdsp::ValueControl attack_ctrl;
+	pdsp::ValueControl release_ctrl;
+	pdsp::ValueControl select_ctrl;
+
+	bool showAttackSlider = false;
+	bool showReleaseSlider = false;
+	bool showInstrumentSlider = false;
+
 	ofImage sineImg;
 	ofImage sawImg;
 	ofImage pulseImg;
 
+	map < InstrumentType, vector<pdsp::SampleBuffer*> > samples;
+
+	map < InstrumentType, int> lastInstrumentValue;
+
+	size_t select_ctrl_offset = 0;
+
 	pdsp::SampleBuffer violin;
 	pdsp::Sampler sampler;
+
+	const float attackMin = 0.0f;
+	const float attackMax = 200.0f;
+	const float releaseMin = 0.0f;
+	const float releaseMax = 800.0f;
 };
 
 class Effect : public TableObject {
@@ -259,6 +290,7 @@ public:
 	void update();
 	void updateAngleValue(float angle);
 	void Tap(TableButton::TapButtonArgs & a);
+	void LongPush(TableButton::LongPushButtonArgs & a);
 	void updateSlider(TableSlider::updateSliderArgs & a);
 
 private:
@@ -271,6 +303,7 @@ private:
 	TableInfoCircle* info;
 	TableButton* button;
 	TableSlider* slider;
+	TableSlider* Aslider;
 
 	pdsp::Amp           amp;
 	pdsp::ValueControl	time_ctrl;

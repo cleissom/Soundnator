@@ -94,7 +94,8 @@ public:
 	void isHidden(bool is);
 	void draw();
 
-	void setSliderValue(float value) { this->lastValue = value; };
+	void setValue(float value) { this->lastValue = value; };
+	void setMaxValue(float value) { this->sliderMaxValue = value; };
 
 	void fingersEnter(InputGestureDirectFingers::enterCursorArgs & a);
 	void fingersUpdate(InputGestureDirectFingers::updateCursorArgs & a);

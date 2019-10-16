@@ -416,7 +416,7 @@ void TableSequencerSliders::isHidden(bool is) {
 
 void TableSequencerSliders::updateSequencerSliders(vector<int>& vec) {
 	for (size_t i = 0; i < sliders.size(); i++) {
-		sliders[i]->setSliderValue(vec[i]);
+		sliders[i]->setValue(vec[i]);
 	}
 }
 

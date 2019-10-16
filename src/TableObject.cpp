@@ -24,7 +24,6 @@ void TableObject::updateTurnMultiplier(float angle) {
 	if ((derivative > derivativeThreshold) && (((turnsMultiplier*M_2PI) - angle) < angleMaxValue)) turnsMultiplier++;
 	else if ((derivative < (-derivativeThreshold)) && (((2 * turnsMultiplier*M_2PI) - angle) > angleMinValue)) turnsMultiplier--;
 	rawAngleLastValue = angle;
-	cout << "turns: " << turnsMultiplier << endl;
 }
 
 void TableObject::updateObject(InputGestureDirectObjects::updateObjectArgs& a) {
@@ -262,7 +261,12 @@ TableObject* TableObject::getFollowingObject() {
 }
 
 float TableObject::getDistanceTo(TableObject* obj) {
-	return this->dobj->getDistance(obj->dobj);
+	if (this->dobj) {
+		return this->dobj->getDistance(obj->dobj);
+	}
+	else {
+		return 0.0f;
+	}
 }
 
 float TableObject::getAngleTo(TableObject* obj) {
@@ -327,11 +331,11 @@ Oscillator::Oscillator(int id) : Generator(id) {
 
 	ASlider = new TableSlider(270.0f, 0.08f, false, 100.0f, 0.0, 0, 1.0f, 1.0f, false, true, false, "A");
 	registerEvent(ASlider->updateSlider, &Oscillator::updateAttack, this);
-	ASlider->setSliderValue(0.0);
+	ASlider->setValue(0.0);
 
 	RSlider = new TableSlider(270.0f, 0.1f, false, 100.0f, 0.0, 0, 1.0f, 1.0f, false, true, false, "R");
 	registerEvent(RSlider->updateSlider, &Oscillator::updateRelease, this);
-	RSlider->setSliderValue(50.0);
+	RSlider->setValue(50.0);
 
 	loadImg(sineImg, "1.png");
 	loadImg(sawImg, "2.png");
@@ -372,11 +376,9 @@ void Oscillator::update() {
 	if (connectionUpdated) {
 		if (*getPrecedingObj(this, CONTROL)) {
 			env >> ampEnv.in_mod();
-			cout << "control" << endl;
 		}
 		else {
 			env.disconnectOut();
-			cout << "not control" << endl;
 		}
 		connectionUpdated = false;
 	}
@@ -459,25 +461,71 @@ static vector<float> akebono{ 72.0f, 74.0f, 75.0f, 79.0f, 80.0f, 84.0f, 86.0f, 8
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+pdsp::SampleBuffer* newSample(string dir) {
+	pdsp::SampleBuffer* buffer = new pdsp::SampleBuffer();
+	buffer->load(dir);
+	return buffer;
+}
+
+
+
+vector<pdsp::SampleBuffer*> getSampleBuffers(string folder) {
+	string path = "/samples/" + folder;
+	ofDirectory dir(path);
+	dir.allowExt("wav");
+	dir.listDir();
+	vector<pdsp::SampleBuffer*> kicks;
+	for (int i = 0; i < dir.size(); i++) {
+		ofLogNotice(dir.getPath(i));
+		kicks.push_back(newSample("./data/" + dir.getPath(i)));
+	}
+	return kicks;
+}
+
 Sampler::Sampler(int id) : Generator(id) {
 	patch();
 
 	angleMinValue = -TWO_PI;
 	angleMaxValue = 2 * TWO_PI;
 
-	actualMode = SINE;
+	actualInstrument = KICK;
 
 	button = new TableButton(180.0f, 0.075f);
-	slider = new TableSlider(270.0f, 0.075f);
+	slider = new TableSlider(270.0f, 0.06f);
 	registerEvent(button->TapButton, &Sampler::Tap, this);
+	registerEvent(button->LongPushButton, &Sampler::LongPush, this);
 	registerEvent(slider->updateSlider, &Sampler::updateVolume, this);
+
+	ASlider = new TableSlider(270.0f, 0.08f, false, 100.0f, 0.0, 0, 1.0f, 1.0f, false, true, false, "A");
+	registerEvent(ASlider->updateSlider, &Sampler::updateAttack, this);
+	ASlider->setValue(0.0);
+
+	RSlider = new TableSlider(270.0f, 0.1f, false, 100.0f, 0.0, 0, 1.0f, 1.0f, false, true, false, "R");
+	registerEvent(RSlider->updateSlider, &Sampler::updateRelease, this);
+	RSlider->setValue(100.0);
+
+	
 
 	loadImg(sineImg, "1.png");
 	loadImg(sawImg, "2.png");
-	loadImg(pulseImg, "3.png");
 
-	violin.load("./data/a.wav");
-	sampler.addSample(&violin);
+
+	samples[KICK] = getSampleBuffers("kick");
+	samples[CLAP] = getSampleBuffers("clap");
+	samples[MELODIC] = getSampleBuffers("melodic");
+
+
+	for (auto samplesVec : samples) {
+		for (auto sample : samplesVec.second) {
+			sampler.addSample(sample);
+		}
+	}
+	
+
+
+	instrumentSlider = new TableSlider(90.0f, 0.06f, true, samples[KICK].size()-1, 0.0f, 0, 1, 1, true, true, true);
+	registerEvent(instrumentSlider->updateSlider, &Sampler::instrumentSliderUpdate, this);
+	instrumentSlider->setValue(0.0f);
 }
 
 
@@ -505,6 +553,9 @@ void Sampler::update() {
 
 	updateTableUI(button);
 	updateTableUI(slider);
+	updateTableUI(ASlider, showAttackSlider);
+	updateTableUI(RSlider, showReleaseSlider);
+	updateTableUI(instrumentSlider, showInstrumentSlider);
 
 	/*if (connectionUpdated) {
 		if (*getPrecedingObj(this, CONTROL)) {
@@ -523,12 +574,20 @@ void Sampler::update() {
 void Sampler::patch() {
 
 	trig_in >> sampler >> amp * dB(-6.0f) >> output;
-	trig_in >> env.set(0, 200, 200) >> amp.in_mod();
+	trig_in >> env >> amp.in_mod();
+
+	pitch_ctrl >> sampler.in_pitch();
+	pitch_in >> sampler.in_pitch();
+	-60.0 >> sampler.in_pitch();
+	//-72.0 >> sampler.in_pitch();
 
 
-	//pitch_ctrl >> sampler.in_pitch();
-	//pitch_in >> sampler.in_pitch();
-	//-60.0 >> sampler.in_pitch();
+	select_ctrl >> sampler.in_select();
+
+	attack_ctrl >> env.in_attack();
+	release_ctrl >> env.in_release();
+	
+	releaseMax >> env.in_release();
 
 	pitch_ctrl.enableSmoothing(100.0f);
 
@@ -541,31 +600,73 @@ void Sampler::patch() {
 
 void Sampler::updateAngleValue(float angle) {
 	//pitch_ctrl.set(akebono[ofClamp(angle, 0, akebono.size() - 1)]);
-	pitch_ctrl.set(ofMap(angle, -TWO_PI, 2 * TWO_PI, 36, 72));
+	pitch_ctrl.set(int(ofMap(angle, -TWO_PI, 2 * TWO_PI, 36, 72)));
 }
 
 void Sampler::updateVolume(TableSlider::updateSliderArgs& a) {
-	cout << "update volume to: " << (a.value / 100.0f) << endl;
 	amp.set(a.value / 100.0f);
 }
 
 
 void Sampler::Tap(TableButton::TapButtonArgs& a) {
 
-	switch (actualMode)
+	switch (actualInstrument)
 	{
-	case SINE:
-		actualMode = SAW;
+	case KICK:
+		lastInstrumentValue[KICK] = select_ctrl.meter_output() - select_ctrl_offset;
+		select_ctrl_offset = samples[KICK].size();
+
+		actualInstrument = CLAP;
+		instrumentSlider->setMaxValue(samples[CLAP].size()-1);
+		select_ctrl.set(lastInstrumentValue[CLAP] + select_ctrl_offset);
+		instrumentSlider->setValue(lastInstrumentValue[CLAP]);
 		break;
-	case SAW:
-		actualMode = PULSE;
+
+	case CLAP:
+		lastInstrumentValue[CLAP] = select_ctrl.meter_output() - select_ctrl_offset;
+		select_ctrl_offset = samples[KICK].size() + samples[CLAP].size();
+
+		actualInstrument = MELODIC;
+		instrumentSlider->setMaxValue(samples[MELODIC].size() - 1);
+		select_ctrl.set(lastInstrumentValue[MELODIC] + select_ctrl_offset);
+		instrumentSlider->setValue(lastInstrumentValue[MELODIC]);
 		break;
-	case PULSE:
-		actualMode = SINE;
+
+	case MELODIC:
+		lastInstrumentValue[MELODIC] = select_ctrl.meter_output() - select_ctrl_offset;
+		select_ctrl_offset = 0;
+
+		actualInstrument = KICK;
+		instrumentSlider->setMaxValue(samples[KICK].size()-1);
+		select_ctrl.set(lastInstrumentValue[KICK] + select_ctrl_offset);
+		instrumentSlider->setValue(lastInstrumentValue[KICK]);
 		break;
 	default:
 		break;
 	}
+}
+
+void Sampler::updateAttack(TableSlider::updateSliderArgs& a) {
+	float value = ofMap(a.value, 0, 100, attackMin, attackMax);
+	attack_ctrl.set(value);
+}
+
+void Sampler::updateRelease(TableSlider::updateSliderArgs& a) {
+	float value = ofMap(a.value, 0, 100, releaseMin, releaseMax);
+	release_ctrl.set(value);
+}
+
+void Sampler::instrumentSliderUpdate(TableSlider::updateSliderArgs& a) {
+	float value = a.value;
+	cout << "instrument: " << (float(select_ctrl_offset) + value) << endl;
+	select_ctrl.set(float(select_ctrl_offset) + value);
+}
+
+void Sampler::LongPush(TableButton::LongPushButtonArgs& a) {
+
+	showAttackSlider = !showAttackSlider;
+	showReleaseSlider = !showReleaseSlider;
+	showInstrumentSlider = !showInstrumentSlider;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -681,10 +782,11 @@ Delay::Delay(int id) : Effect(id) {
 
 	button = new TableButton(180.0, 0.075);
 	registerEvent(button->TapButton, &Delay::Tap, this);
+	registerEvent(button->LongPushButton, &Delay::LongPush, this);
 
 	slider = new TableSlider(270.0f, 0.06f);
 	registerEvent(slider->updateSlider, &Delay::updateSlider, this);
-	slider->setSliderValue(50.0);
+	slider->setValue(50.0);
 
 	info = new TableInfoCircle(150, 0.05, 150.0, true, false, 0, delayMaxValue, delayMinValue);
 
@@ -694,7 +796,7 @@ Delay::Delay(int id) : Effect(id) {
 
 void Delay::patch() {
 
-	input >> reverb;
+	input * dB(20.0f) >> reverb;
 	input >> delay;
 
 	node >> amp >> output;
@@ -703,9 +805,9 @@ void Delay::patch() {
 	feedback_ctrl >> delay.in_feedback();
 	
 	time_ctrl >> reverb.in_time();
-	feedback_ctrl >> reverb.in_damping();
+	
 
-	feedback_ctrl.enableSmoothing(200.0f);
+	feedback_ctrl.enableSmoothing(500.0f);
 	time_ctrl.enableSmoothing(200.0f);
 
 	feedback_ctrl.set(0.5f);
@@ -730,6 +832,7 @@ void Delay::update() {
 		case REVERB:
 			node.disconnectIn();
 			reverb >> node;
+			feedback_ctrl >> reverb.in_density();
 			break;
 		default:
 			break;
@@ -764,10 +867,17 @@ void Delay::Tap(TableButton::TapButtonArgs& a) {
 	actualModeChanged = true;
 }
 
+void Delay::LongPush(TableButton::LongPushButtonArgs& a) {
+
+	/*showAttackSlider = !showAttackSlider;
+	showReleaseSlider = !showReleaseSlider;*/
+}
+
 void Delay::updateSlider(TableSlider::updateSliderArgs& a) {
-	float feedback = ofMap(a.value, 0.0, 100.0, 0, 0.9);
+	float feedback = ofMap(a.value, 0.0, 100.0, 0, 0.8f);
 	feedback_ctrl.set(feedback);
 }
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -818,7 +928,7 @@ Sequencer::Sequencer(int id, int sequencerSection, connectionType_t connection) 
 		sequence.end();
 	};
 
-	SoundEngine::I().getSection(sequencerSection).sequence(0).bars = 4.0f;
+	SoundEngine::I().getSection(sequencerSection).sequence(0).bars = 2.0f;
 
 	SoundEngine::I().getSection(sequencerSection).launch(0);
 
@@ -833,6 +943,7 @@ Sequencer::Sequencer(int id, int sequencerSection, connectionType_t connection) 
 
 	button = new TableButton(20.0f, 0.09f);
 	tempoSlider = new TableSlider(-90.0f, 0.13f, true, 2.0f);
+	tempoSlider->setValue(1.0f);
 	widthSlider = new TableSlider(90.0f, 0.13f, false, 100, 0, 0, 1, 1, true, true, false, "W");
 	info = new TableInfoCircle(0, 0.05, 160, true, true, 4, 4.0f, 0.0f);
 
@@ -940,7 +1051,7 @@ void Sequencer::updateTempoSlider(TableSlider::updateSliderArgs & a) {
 }
 
 void Sequencer::updateWidthSlider(TableSlider::updateSliderArgs & a) {
-	pulseWidth = ofMap(a.value, 0, 100.0f, 0.0f, 0.999f);
+	pulseWidth = ofMap(a.value, 0, 100.0f, 0.0f, 0.9f);
 
 }
 
