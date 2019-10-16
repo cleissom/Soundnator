@@ -470,7 +470,7 @@ pdsp::SampleBuffer* newSample(string dir) {
 
 
 vector<pdsp::SampleBuffer*> getSampleBuffers(string folder) {
-	string path = "/samples/" + folder;
+	string path = "samples/" + folder;
 	ofDirectory dir(path);
 	dir.allowExt("wav");
 	dir.listDir();
