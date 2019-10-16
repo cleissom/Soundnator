@@ -12,6 +12,7 @@ SoundDispatcher::SoundDispatcher() {
 	TableObjects.insert(std::make_pair(5, new Sequencer(5,1)));
 	TableObjects.insert(std::make_pair(6, new Delay(6)));
 	TableObjects.insert(std::make_pair(7, new Sampler(7)));
+	TableObjects.insert(std::make_pair(8, new Sampler(8)));
 	TableObjects.insert(std::make_pair(OUTPUT, new Output(OUTPUT)));
 
 	registerEvent(InputGestureDirectFingers::I().enterCursor, &SoundDispatcher::addCursor, this);
