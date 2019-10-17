@@ -477,7 +477,7 @@ vector<pdsp::SampleBuffer*> getSampleBuffers(string folder) {
 	vector<pdsp::SampleBuffer*> kicks;
 	for (int i = 0; i < dir.size(); i++) {
 		ofLogNotice(dir.getPath(i));
-		kicks.push_back(newSample("./data/" + dir.getPath(i)));
+		kicks.push_back(newSample(dir.getAbsolutePath() + "/" + dir.getName(i)));
 	}
 	return kicks;
 }
@@ -526,6 +526,10 @@ Sampler::Sampler(int id) : Generator(id) {
 	instrumentSlider = new TableSlider(90.0f, 0.06f, true, samples[KICK].size()-1, 0.0f, 0, 1, 1, true, true, true);
 	registerEvent(instrumentSlider->updateSlider, &Sampler::instrumentSliderUpdate, this);
 	instrumentSlider->setValue(0.0f);
+
+	for (auto instrument : lastInstrumentValue) {
+		instrument.second = 0;
+	}
 }
 
 
@@ -878,6 +882,9 @@ void Delay::updateSlider(TableSlider::updateSliderArgs& a) {
 	feedback_ctrl.set(feedback);
 }
 
+bool Delay::objectIsConnectableTo(TableObject* obj) {
+	return false;
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -945,6 +952,7 @@ Sequencer::Sequencer(int id, int sequencerSection, connectionType_t connection) 
 	tempoSlider = new TableSlider(-90.0f, 0.13f, true, 2.0f);
 	tempoSlider->setValue(1.0f);
 	widthSlider = new TableSlider(90.0f, 0.13f, false, 100, 0, 0, 1, 1, true, true, false, "W");
+	pulseWidth = 0.9;
 	info = new TableInfoCircle(0, 0.05, 160, true, true, 4, 4.0f, 0.0f);
 
 	registerEvent(tableSequencerCells->updateTableSequencerCells, &Sequencer::updateTableSequencerCells, this);

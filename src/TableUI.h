@@ -97,6 +97,8 @@ public:
 	void setValue(float value) { this->lastValue = value; };
 	void setMaxValue(float value) { this->sliderMaxValue = value; };
 
+	float getValue() { return this->lastValue; }
+
 	void fingersEnter(InputGestureDirectFingers::enterCursorArgs & a);
 	void fingersUpdate(InputGestureDirectFingers::updateCursorArgs & a);
 

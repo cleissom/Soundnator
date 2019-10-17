@@ -293,6 +293,8 @@ public:
 	void LongPush(TableButton::LongPushButtonArgs & a);
 	void updateSlider(TableSlider::updateSliderArgs & a);
 
+	bool objectIsConnectableTo(TableObject * obj);
+
 private:
 	delayMode actualMode = FEEDBACK_DELAY;
 	bool actualModeChanged = false;
