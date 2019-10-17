@@ -534,44 +534,11 @@ Sampler::Sampler(int id) : Generator(id) {
 
 
 void Sampler::update() {
-
-	/*switch (actualMode) {
-	case SINE:
-		ampEnv.in_signal().disconnectIn();
-		sine.out_sine() >> ampEnv;
-		button->setImage(sineImg);
-		break;
-	case SAW:
-		ampEnv.in_signal().disconnectIn();
-		saw.out_saw() >> ampEnv;
-		button->setImage(sawImg);
-		break;
-	case PULSE:
-		ampEnv.in_signal().disconnectIn();
-		pulse.out_pulse() >> ampEnv;
-		button->setImage(pulseImg);
-		break;
-	default:
-		break;
-	}*/
-
 	updateTableUI(button);
 	updateTableUI(slider);
 	updateTableUI(ASlider, showAttackSlider);
 	updateTableUI(RSlider, showReleaseSlider);
 	updateTableUI(instrumentSlider, showInstrumentSlider);
-
-	/*if (connectionUpdated) {
-		if (*getPrecedingObj(this, CONTROL)) {
-			env >> ampEnv.in_mod();
-			cout << "control" << endl;
-		}
-		else {
-			env.disconnectOut();
-			cout << "not control" << endl;
-		}
-		connectionUpdated = false;
-	}*/
 }
 
 
@@ -617,7 +584,7 @@ void Sampler::Tap(TableButton::TapButtonArgs& a) {
 	switch (actualInstrument)
 	{
 	case KICK:
-		lastInstrumentValue[KICK] = select_ctrl.meter_output() - select_ctrl_offset;
+		lastInstrumentValue[KICK] = select_ctrl.get() - select_ctrl_offset;
 		select_ctrl_offset = samples[KICK].size();
 
 		actualInstrument = CLAP;
@@ -627,7 +594,7 @@ void Sampler::Tap(TableButton::TapButtonArgs& a) {
 		break;
 
 	case CLAP:
-		lastInstrumentValue[CLAP] = select_ctrl.meter_output() - select_ctrl_offset;
+		lastInstrumentValue[CLAP] = select_ctrl.get() - select_ctrl_offset;
 		select_ctrl_offset = samples[KICK].size() + samples[CLAP].size();
 
 		actualInstrument = MELODIC;
@@ -637,7 +604,7 @@ void Sampler::Tap(TableButton::TapButtonArgs& a) {
 		break;
 
 	case MELODIC:
-		lastInstrumentValue[MELODIC] = select_ctrl.meter_output() - select_ctrl_offset;
+		lastInstrumentValue[MELODIC] = select_ctrl.get() - select_ctrl_offset;
 		select_ctrl_offset = 0;
 
 		actualInstrument = KICK;

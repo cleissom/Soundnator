@@ -2,17 +2,21 @@
 #include "SoundEngine.h"
 
 SoundDispatcher::SoundDispatcher() {
-	SoundEngine::I().getEngine().sequencer.init(2, 4, 120);
+	SoundEngine::I().getEngine().sequencer.init(3, 4, 120);
 
-	TableObjects.insert(std::make_pair(0, new Oscillator(0)));
-	TableObjects.insert(std::make_pair(1, new Oscillator(1)));
-	TableObjects.insert(std::make_pair(2, new Filter(2)));
-	TableObjects.insert(std::make_pair(3, new Filter(3)));
-	TableObjects.insert(std::make_pair(4, new Sequencer(4,0)));
-	TableObjects.insert(std::make_pair(5, new Sequencer(5,1)));
-	TableObjects.insert(std::make_pair(6, new Delay(6)));
-	TableObjects.insert(std::make_pair(7, new Sampler(7)));
-	TableObjects.insert(std::make_pair(8, new Sampler(8)));
+	TableObjects.insert(std::make_pair(0,	new Oscillator(0)));
+	TableObjects.insert(std::make_pair(1,	new Oscillator(1)));
+	TableObjects.insert(std::make_pair(2,	new Filter(2)));
+	TableObjects.insert(std::make_pair(3,	new Filter(3)));
+	TableObjects.insert(std::make_pair(4,	new Sequencer(4,0)));
+	TableObjects.insert(std::make_pair(5,	new Sequencer(5,1)));
+	TableObjects.insert(std::make_pair(6,	new Delay(6)));
+	TableObjects.insert(std::make_pair(7,	new Sampler(7)));
+	TableObjects.insert(std::make_pair(8,	new Sampler(8)));
+	TableObjects.insert(std::make_pair(9,	new Sampler(9)));
+	TableObjects.insert(std::make_pair(10,	new Sequencer(10,2)));
+	TableObjects.insert(std::make_pair(11,	new Delay(11)));
+
 	TableObjects.insert(std::make_pair(OUTPUT, new Output(OUTPUT)));
 
 	registerEvent(InputGestureDirectFingers::I().enterCursor, &SoundDispatcher::addCursor, this);
