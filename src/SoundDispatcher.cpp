@@ -91,7 +91,6 @@ std::pair<TableObject*, TableObject*> SoundDispatcher::findShorterDistancesFrom(
 	std::pair<TableObject*, TableObject*> shorter(nullptr, nullptr);
 
 	for (TableObject* object : ObjectsOnTable) {
-		cout << object->getId() << endl;
 		if (object != obj) {
 			float dist = obj->getDistanceTo(object);
 			if (dist < first) {
@@ -140,8 +139,6 @@ void SoundDispatcher::processConnections(TableObject* object) {
 				}
 			}
 		}
-
-		cout << endl;
 	}
 
 }

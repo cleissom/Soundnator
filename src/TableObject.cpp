@@ -34,7 +34,6 @@ void TableObject::updateObject(InputGestureDirectObjects::updateObjectArgs& a) {
 		float angle = turnsMultiplier * M_2PI - rawAngle;
 		if (angle > angleMaxValue) angle = angleMaxValue;
 		if (angle < angleMinValue) angle = angleMinValue;
-		cout << angle << endl;
 		updateAngleValue(angle);
 	}
 }
@@ -629,7 +628,6 @@ void Sampler::updateRelease(TableSlider::updateSliderArgs& a) {
 
 void Sampler::instrumentSliderUpdate(TableSlider::updateSliderArgs& a) {
 	float value = a.value;
-	cout << "instrument: " << (float(select_ctrl_offset) + value) << endl;
 	select_ctrl.set(float(select_ctrl_offset) + value);
 }
 
