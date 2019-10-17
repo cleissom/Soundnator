@@ -172,7 +172,7 @@ private:
 class Sampler : public Generator {
 
 public:
-	typedef enum { KICK, CLAP, MELODIC } InstrumentType;
+	typedef enum { KICK, CLAP, HAT, SNARE, MELODIC } InstrumentType;
 
 	Sampler(int id = -1);
 	Sampler(const Sampler & other) { patch(); } // you need this to use std::vector with your class, otherwise will not compile
@@ -181,6 +181,8 @@ public:
 	void patch();
 	void updateAngleValue(float angle);
 	void updateVolume(TableSlider::updateSliderArgs & a);
+	int sumInstrumentSize(InstrumentType v);
+	void changeInstrument(InstrumentType actual, InstrumentType next);
 	void Tap(TableButton::TapButtonArgs & a);
 
 	void updateAttack(TableSlider::updateSliderArgs & a);
@@ -193,6 +195,7 @@ public:
 
 private:
 	InstrumentType actualInstrument;
+	bool actualInstrumentChanged;
 	int choose = 0;
 	TableButton*  button;
 	TableSlider*  slider;
@@ -217,9 +220,11 @@ private:
 	bool showReleaseSlider = false;
 	bool showInstrumentSlider = false;
 
-	ofImage sineImg;
-	ofImage sawImg;
-	ofImage pulseImg;
+	ofImage kickImg;
+	ofImage clapImg;
+	ofImage hatImg;
+	ofImage snareImg;
+	ofImage melodicImg;
 
 	map < InstrumentType, vector<pdsp::SampleBuffer*> > samples;
 
@@ -234,6 +239,9 @@ private:
 	const float attackMax = 200.0f;
 	const float releaseMin = 0.0f;
 	const float releaseMax = 800.0f;
+
+	template<typename ...Types>
+	int sumInstrumentSize(InstrumentType v, Types && ...others);
 };
 
 class Effect : public TableObject {
@@ -272,6 +280,10 @@ private:
 	TableButton* button;
 	TableSlider* slider;
 
+	ofImage lowpassImg;
+	ofImage highpassImg;
+	ofImage bandpassImg;
+
 	pdsp::Amp           ampDry;
 	pdsp::Amp           ampWet;
 	pdsp::Amp           amp;
@@ -306,6 +318,9 @@ private:
 	TableButton* button;
 	TableSlider* slider;
 	TableSlider* Aslider;
+
+	ofImage feedbackImg;
+	ofImage reverbImg;
 
 	pdsp::Amp           amp;
 	pdsp::ValueControl	time_ctrl;
@@ -372,10 +387,14 @@ private:
 	bool showTableSequencerPitch = false;
 	bool showTableSequencerVolume = false;
 	int actualSequence;
+	bool actualModeChanged;
 
 	int sequencerSection;
 	float pulseWidth;
 
+	ofImage sequencerImg;
+	ofImage pitchImg;
+	ofImage volumeImg;
 
 	TableSequencerCells*	tableSequencerCells;
 	TableSequencerSliders*	tableSequencerPitch;

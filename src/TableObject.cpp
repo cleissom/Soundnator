@@ -336,9 +336,9 @@ Oscillator::Oscillator(int id) : Generator(id) {
 	registerEvent(RSlider->updateSlider, &Oscillator::updateRelease, this);
 	RSlider->setValue(50.0);
 
-	loadImg(sineImg, "1.png");
-	loadImg(sawImg, "2.png");
-	loadImg(pulseImg, "3.png");
+	loadImg(sineImg, "imgs/sine.png");
+	loadImg(sawImg, "imgs/saw.png");
+	loadImg(pulseImg, "imgs/pulse.png");
 }
 
 
@@ -505,12 +505,17 @@ Sampler::Sampler(int id) : Generator(id) {
 
 	
 
-	loadImg(sineImg, "1.png");
-	loadImg(sawImg, "2.png");
+	loadImg(kickImg, "imgs/kick.png");
+	loadImg(clapImg, "imgs/clap.png");
+	loadImg(hatImg, "imgs/hat.png");
+	loadImg(snareImg, "imgs/drum.png");
+	loadImg(melodicImg, "imgs/sampler.png");
 
 
 	samples[KICK] = getSampleBuffers("kick");
 	samples[CLAP] = getSampleBuffers("clap");
+	samples[HAT] = getSampleBuffers("hat");
+	samples[SNARE] = getSampleBuffers("snare");
 	samples[MELODIC] = getSampleBuffers("melodic");
 
 
@@ -529,10 +534,39 @@ Sampler::Sampler(int id) : Generator(id) {
 	for (auto instrument : lastInstrumentValue) {
 		instrument.second = 0;
 	}
+
+	actualInstrumentChanged = true;
 }
 
 
 void Sampler::update() {
+
+	if (actualInstrumentChanged) {
+		switch (actualInstrument)
+		{
+		case KICK:
+			button->setImage(kickImg);
+			break;
+		case CLAP:
+			button->setImage(clapImg);
+			break;
+		case HAT:
+			button->setImage(hatImg);
+			break;
+		case SNARE:
+			button->setImage(snareImg);
+			break;
+		case MELODIC:
+			button->setImage(melodicImg);
+			break;
+		default:
+			break;
+		}
+		actualInstrumentChanged = false;
+	}
+
+
+
 	updateTableUI(button);
 	updateTableUI(slider);
 	updateTableUI(ASlider, showAttackSlider);
@@ -578,38 +612,70 @@ void Sampler::updateVolume(TableSlider::updateSliderArgs& a) {
 }
 
 
+
+int Sampler::sumInstrumentSize(InstrumentType v) {
+	return samples[v].size();
+}
+
+template<typename... Types>
+int Sampler::sumInstrumentSize(InstrumentType v, Types&&... others) {
+	return samples[v].size() + sumInstrumentSize(others...);
+}
+
+void Sampler::changeInstrument(InstrumentType actual, InstrumentType next) {
+	lastInstrumentValue[actual] = select_ctrl.get() - select_ctrl_offset;
+
+
+	switch (actual)
+	{
+	case KICK:
+		select_ctrl_offset = sumInstrumentSize(KICK);
+		break;
+	case CLAP:
+		select_ctrl_offset = sumInstrumentSize(KICK, CLAP);
+		break;
+	case HAT:
+		select_ctrl_offset = sumInstrumentSize(KICK, CLAP, HAT);
+		break;
+	case SNARE:
+		select_ctrl_offset = sumInstrumentSize(KICK, CLAP, HAT, SNARE);
+		break;
+	case MELODIC:
+		select_ctrl_offset = 0;
+		break;
+	default:
+		break;
+	}
+
+	actualInstrument = next;
+	instrumentSlider->setMaxValue(samples[next].size() - 1);
+	select_ctrl.set(lastInstrumentValue[next] + select_ctrl_offset);
+	instrumentSlider->setValue(lastInstrumentValue[next]);
+	actualInstrumentChanged = true;
+}
+
 void Sampler::Tap(TableButton::TapButtonArgs& a) {
 
 	switch (actualInstrument)
 	{
 	case KICK:
-		lastInstrumentValue[KICK] = select_ctrl.get() - select_ctrl_offset;
-		select_ctrl_offset = samples[KICK].size();
-
-		actualInstrument = CLAP;
-		instrumentSlider->setMaxValue(samples[CLAP].size()-1);
-		select_ctrl.set(lastInstrumentValue[CLAP] + select_ctrl_offset);
-		instrumentSlider->setValue(lastInstrumentValue[CLAP]);
+		changeInstrument(actualInstrument, CLAP);
 		break;
 
 	case CLAP:
-		lastInstrumentValue[CLAP] = select_ctrl.get() - select_ctrl_offset;
-		select_ctrl_offset = samples[KICK].size() + samples[CLAP].size();
+		changeInstrument(actualInstrument, HAT);
+		break;
 
-		actualInstrument = MELODIC;
-		instrumentSlider->setMaxValue(samples[MELODIC].size() - 1);
-		select_ctrl.set(lastInstrumentValue[MELODIC] + select_ctrl_offset);
-		instrumentSlider->setValue(lastInstrumentValue[MELODIC]);
+	case HAT:
+		changeInstrument(actualInstrument, SNARE);
+		break;
+
+	case SNARE:
+		changeInstrument(actualInstrument, MELODIC);
 		break;
 
 	case MELODIC:
-		lastInstrumentValue[MELODIC] = select_ctrl.get() - select_ctrl_offset;
-		select_ctrl_offset = 0;
-
-		actualInstrument = KICK;
-		instrumentSlider->setMaxValue(samples[KICK].size()-1);
-		select_ctrl.set(lastInstrumentValue[KICK] + select_ctrl_offset);
-		instrumentSlider->setValue(lastInstrumentValue[KICK]);
+		changeInstrument(actualInstrument, KICK);
 		break;
 	default:
 		break;
@@ -666,6 +732,12 @@ Filter::Filter(int id) : Effect(id) {
 	registerEvent(slider->updateSlider, &Filter::updateSlider, this);
 
 	info = new TableInfoCircle(150, 0.05, 150.0, true, false, 0, filterMaxValue, filterMinValue);
+
+	loadImg(lowpassImg, "imgs/lowpass.png");
+	loadImg(highpassImg, "imgs/highpass.png");
+	loadImg(bandpassImg, "imgs/bandpass.png");
+
+	actualModeChanged = true;
 }
 
 
@@ -692,12 +764,15 @@ void Filter::update() {
 		{
 		case LOWPASS:
 			pdsp::VAFilter::LowPass24 >> filter.in_mode();
+			button->setImage(lowpassImg);
 			break;
 		case HIGHPASS:
 			pdsp::VAFilter::HighPass24 >> filter.in_mode();
+			button->setImage(highpassImg);
 			break;
 		case BANDPASS:
 			pdsp::VAFilter::BandPass24 >> filter.in_mode();
+			button->setImage(bandpassImg);
 			break;
 		default:
 			break;
@@ -760,6 +835,9 @@ Delay::Delay(int id) : Effect(id) {
 	info = new TableInfoCircle(150, 0.05, 150.0, true, false, 0, delayMaxValue, delayMinValue);
 
 	actualModeChanged = true;
+
+	loadImg(feedbackImg, "imgs/feedback.png");
+	loadImg(reverbImg, "imgs/reverb.png");
 }
 
 
@@ -797,11 +875,13 @@ void Delay::update() {
 			node.disconnectIn();
 			delay >> node;
 			reverb >> SoundEngine::I().getEngine().blackhole();
+			button->setImage(feedbackImg);
 			break;
 		case REVERB:
 			node.disconnectIn();
 			reverb >> node;
 			feedback_ctrl >> reverb.in_density();
+			button->setImage(reverbImg);
 			break;
 		default:
 			break;
@@ -928,6 +1008,10 @@ Sequencer::Sequencer(int id, int sequencerSection, connectionType_t connection) 
 	registerEvent(tempoSlider->updateSlider, &Sequencer::updateTempoSlider, this);
 	registerEvent(widthSlider->updateSlider, &Sequencer::updateWidthSlider, this);
 
+	loadImg(sequencerImg, "imgs/sequencer.png");
+	loadImg(pitchImg, "imgs/pitch.png");
+	loadImg(volumeImg, "imgs/volume.png");
+
 }
 
 
@@ -943,25 +1027,32 @@ void Sequencer::patch() {
 
 void Sequencer::update() {
 
-	switch (actualMode) {
-	case SEQUENCER:
-		showTableSequencerCells = true;
-		showTableSequencerPitch = false;
-		showTableSequencerVolume = false;
-		break;
-	case PITCH:
-		showTableSequencerCells = false;
-		showTableSequencerPitch = true;
-		showTableSequencerVolume = false;
-		break;
-	case VOLUME:
-		showTableSequencerCells = false;
-		showTableSequencerPitch = false;
-		showTableSequencerVolume = true;
-		break;
-	default:
-		break;
+	if (actualModeChanged) {
+		switch (actualMode) {
+		case SEQUENCER:
+			showTableSequencerCells = true;
+			showTableSequencerPitch = false;
+			showTableSequencerVolume = false;
+			button->setImage(sequencerImg);
+			break;
+		case PITCH:
+			showTableSequencerCells = false;
+			showTableSequencerPitch = true;
+			showTableSequencerVolume = false;
+			button->setImage(pitchImg);
+			break;
+		case VOLUME:
+			showTableSequencerCells = false;
+			showTableSequencerPitch = false;
+			showTableSequencerVolume = true;
+			button->setImage(volumeImg);
+			break;
+		default:
+			break;
+		}
+		actualModeChanged = false;
 	}
+
 
 	updateTableUI(button);
 	updateTableUI(tempoSlider, showSlider && showTableSequencerCells);
@@ -1012,6 +1103,7 @@ void Sequencer::tapButton(TableButton::TapButtonArgs & a) {
 	default:
 		break;
 	}
+	actualModeChanged = true;
 }
 
 void Sequencer::longPushButton(TableButton::LongPushButtonArgs & a) {
