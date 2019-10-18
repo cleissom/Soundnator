@@ -386,7 +386,7 @@ void Oscillator::update() {
 
 void Oscillator::patch() {
 
-	ampEnv >> amp * dB(-6.0f) >> output;
+	ampEnv >> amp * dB(-12.0f) >> output;
 	trig_in >> env.in_trig();
 
 	pitch_ctrl >> sine.in_pitch();
@@ -577,7 +577,7 @@ void Sampler::update() {
 
 void Sampler::patch() {
 
-	trig_in >> sampler >> amp * dB(-6.0f) >> output;
+	trig_in >> sampler >> amp * dB(-12.0f) >> output;
 	trig_in >> env >> amp.in_mod();
 
 	pitch_ctrl >> sampler.in_pitch();
@@ -929,6 +929,98 @@ void Delay::updateSlider(TableSlider::updateSliderArgs& a) {
 
 bool Delay::objectIsConnectableTo(TableObject* obj) {
 	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Chorus::Chorus(int id) : Effect(id) {
+	patch();
+
+	angleMinValue = -TWO_PI;
+	angleMaxValue = TWO_PI;
+
+	button = new TableButton(180.0, 0.075);
+	registerEvent(button->TapButton, &Chorus::Tap, this);
+
+	slider = new TableSlider(270.0f, 0.06f);
+	registerEvent(slider->updateSlider, &Chorus::updateSlider, this);
+
+	speedSlider = new TableSlider(270.0f, 0.08f);
+	registerEvent(speedSlider->updateSlider, &Chorus::updateSpeedSlider, this);
+	speed_ctrl.set(speedMaxValue / 2.0);
+	speedSlider->setValue(50);
+
+	delaySlider = new TableSlider(270.0f, 0.1f);
+	registerEvent(delaySlider->updateSlider, &Chorus::updateDelaySlider, this);
+	delay_ctrl.set(delayMaxValue / 2.0);
+	delaySlider->setValue(50);
+
+	info = new TableInfoCircle(150, 0.05, 150.0, true, false, 0, depthMaxValue, depthMinValue);
+
+	loadImg(chorusImg, "imgs/chorus.png");
+	button->setImage(chorusImg);
+
+	showSpeedSlider = false;
+	showDelaySlider = false;
+}
+
+
+void Chorus::patch() {
+
+	input >> chorus >> ampWet >> amp;
+	input >> ampDry >> amp;
+	amp >> output;
+
+	delay_ctrl >> chorus.in_delay();
+	delay_ctrl.enableSmoothing(200.0f);
+
+	speed_ctrl >> chorus.in_speed();
+	speed_ctrl.enableSmoothing(200.0f);
+
+	depth_ctrl >> chorus.in_depth();
+	depth_ctrl.enableSmoothing(200.0f);
+
+	amp.set(1.0f);
+	ampDry.set(0.0f);
+	ampWet.set(1.0f);
+
+	this->setToScope(amp);
+}
+
+void Chorus::update() {
+	updateTableUI(button);
+	updateTableUI(info);
+	updateTableUI(slider);
+	updateTableUI(speedSlider, showSpeedSlider);
+	updateTableUI(delaySlider, showDelaySlider);
+}
+
+void Chorus::updateAngleValue(float angle) {
+	float value = ofMap(angle, -TWO_PI, TWO_PI, depthMinValue, depthMaxValue);
+	info->setValue(value);
+	depth_ctrl.set(value);
+}
+
+void Chorus::Tap(TableButton::TapButtonArgs& a) {
+	showSpeedSlider = !showSpeedSlider;
+	showDelaySlider = !showDelaySlider;
+}
+
+void Chorus::updateSlider(TableSlider::updateSliderArgs& a) {
+	float wetness = ofMap(a.value, 0.0, 100.0, 0, 1.0);
+	ampWet.set(wetness);
+	ampDry.set(1.0 - wetness);
+}
+
+void Chorus::updateSpeedSlider(TableSlider::updateSliderArgs& a) {
+	float value = ofMap(a.value, 0.0, 100.0, speedMinValue, speedMaxValue);
+	speed_ctrl.set(value);
+}
+
+void Chorus::updateDelaySlider(TableSlider::updateSliderArgs& a) {
+	float value = ofMap(a.value, 0.0, 100.0, delayMinValue, delayMaxValue);
+	delay_ctrl.set(value);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

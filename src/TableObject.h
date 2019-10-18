@@ -332,6 +332,51 @@ private:
 };
 
 
+class Chorus : public Effect {
+public:
+	Chorus(int id = -1);
+	Chorus(const Chorus  & other) { patch(); } // you need this to use std::vector with your class, otherwise will not compile
+	void patch();
+
+	void update();
+	void updateAngleValue(float angle);
+	void Tap(TableButton::TapButtonArgs & a);
+	void updateSlider(TableSlider::updateSliderArgs & a);
+
+	void updateSpeedSlider(TableSlider::updateSliderArgs & a);
+
+	void updateDelaySlider(TableSlider::updateSliderArgs & a);
+
+private:
+
+	const float depthMinValue = 0.0;
+	const float depthMaxValue = 30.0;
+	const float speedMinValue = 0.0;
+	const float speedMaxValue = 5.0;
+	const float delayMinValue = 0.0;
+	const float delayMaxValue = 300.0;
+
+
+	TableInfoCircle* info;
+	TableButton* button;
+	TableSlider* slider;
+	TableSlider* speedSlider;
+	TableSlider* delaySlider;
+
+	bool showSpeedSlider;
+	bool showDelaySlider;
+
+	ofImage chorusImg;
+
+	pdsp::Amp           amp;
+	pdsp::Amp           ampWet;
+	pdsp::Amp           ampDry;
+	pdsp::ValueControl	speed_ctrl;
+	pdsp::ValueControl	depth_ctrl;
+	pdsp::ValueControl	delay_ctrl;
+	pdsp::DimensionChorus      chorus; // 24dB multimode filter
+};
+
 class Controller : public TableObject {
 
 public:

@@ -16,6 +16,8 @@ SoundDispatcher::SoundDispatcher() {
 	TableObjects.insert(std::make_pair(9,	new Sampler(9)));
 	TableObjects.insert(std::make_pair(10,	new Sequencer(10,2)));
 	TableObjects.insert(std::make_pair(11,	new Delay(11)));
+	TableObjects.insert(std::make_pair(12,	new Chorus(12)));
+	TableObjects.insert(std::make_pair(13,	new Chorus(13)));
 
 	TableObjects.insert(std::make_pair(OUTPUT, new Output(OUTPUT)));
 
