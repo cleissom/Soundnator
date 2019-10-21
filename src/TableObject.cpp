@@ -962,12 +962,12 @@ Chorus::Chorus(int id) : Effect(id) {
 	slider = new TableSlider(270.0f, 0.07f);
 	registerEvent(slider->updateSlider, &Chorus::updateSlider, this);
 
-	speedSlider = new TableSlider(270.0f, 0.09f);
+	speedSlider = new TableSlider(270.0f, 0.09f, false, 100, 0, 0, 1, 1, false, true, false, "S");
 	registerEvent(speedSlider->updateSlider, &Chorus::updateSpeedSlider, this);
 	speed_ctrl.set(speedMaxValue / 2.0);
 	speedSlider->setValue(50);
 
-	delaySlider = new TableSlider(270.0f, 0.11f);
+	delaySlider = new TableSlider(270.0f, 0.11f, false, 100, 0, 0, 1, 1, false, true, false, "D");
 	registerEvent(delaySlider->updateSlider, &Chorus::updateDelaySlider, this);
 	delay_ctrl.set(delayMaxValue / 2.0);
 	delaySlider->setValue(50);
