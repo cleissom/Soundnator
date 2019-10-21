@@ -199,10 +199,15 @@ void TableObject::remove() {
 		precedingControlObj->followingObj = nullptr;
 		precedingControlObj = nullptr;
 	}
-	if (followingObj) {
+	else if (followingObj) {
 		*getPrecedingObj(followingObj) = nullptr;
+	}
+
+	if (followingObj) {
+		
 		followingObj = nullptr;
 	}
+
 	setDirectObject(nullptr);
 	this->disconnectAll();
 }
@@ -260,7 +265,7 @@ TableObject* TableObject::getFollowingObject() {
 }
 
 float TableObject::getDistanceTo(TableObject* obj) {
-	if (this->dobj) {
+	if (this->dobj && obj->dobj) {
 		return this->dobj->getDistance(obj->dobj);
 	}
 	else {
@@ -269,7 +274,12 @@ float TableObject::getDistanceTo(TableObject* obj) {
 }
 
 float TableObject::getAngleTo(TableObject* obj) {
-	return this->dobj->getAngle(obj->dobj);
+	if (this->dobj && obj->dobj) {
+		return this->dobj->getAngle(obj->dobj);
+	}
+	else {
+		return 0.0f;
+	}
 }
 
 
@@ -323,18 +333,20 @@ Oscillator::Oscillator(int id) : Generator(id) {
 	actualMode = SINE;
 
 	button = new TableButton(180.0f, 0.075f);
-	slider = new TableSlider(270.0f, 0.06f);
+	slider = new TableSlider(270.0f, 0.07f);
 	registerEvent(button->TapButton, &Oscillator::Tap, this);
 	registerEvent(button->LongPushButton, &Oscillator::LongPush, this);
 	registerEvent(slider->updateSlider, &Oscillator::updateVolume, this);
 
-	ASlider = new TableSlider(270.0f, 0.08f, false, 100.0f, 0.0, 0, 1.0f, 1.0f, false, true, false, "A");
+	ASlider = new TableSlider(270.0f, 0.09f, false, 100.0f, 0.0, 0, 1.0f, 1.0f, false, true, false, "A");
 	registerEvent(ASlider->updateSlider, &Oscillator::updateAttack, this);
 	ASlider->setValue(0.0);
+	attack_ctrl.set(1.0f);
 
-	RSlider = new TableSlider(270.0f, 0.1f, false, 100.0f, 0.0, 0, 1.0f, 1.0f, false, true, false, "R");
+	RSlider = new TableSlider(270.0f, 0.11f, false, 100.0f, 0.0, 0, 1.0f, 1.0f, false, true, false, "R");
 	registerEvent(RSlider->updateSlider, &Oscillator::updateRelease, this);
 	RSlider->setValue(50.0);
+	release_ctrl.set(releaseMax / 2.0f);
 
 	loadImg(sineImg, "imgs/sine.png");
 	loadImg(sawImg, "imgs/saw.png");
@@ -410,7 +422,7 @@ void Oscillator::patch() {
 
 void Oscillator::updateAngleValue(float angle) {
 	//pitch_ctrl.set(akebono[ofClamp(angle, 0, akebono.size() - 1)]);
-	pitch_ctrl.set(ofMap(angle, -TWO_PI, 2 * TWO_PI, 36, 72));
+	pitch_ctrl.set(ofMap(angle, -TWO_PI, 2 * TWO_PI, 48, 84));
 }
 
 void Oscillator::updateVolume(TableSlider::updateSliderArgs& a) {
@@ -490,20 +502,20 @@ Sampler::Sampler(int id) : Generator(id) {
 	actualInstrument = KICK;
 
 	button = new TableButton(180.0f, 0.075f);
-	slider = new TableSlider(270.0f, 0.06f);
+	slider = new TableSlider(270.0f, 0.07f);
 	registerEvent(button->TapButton, &Sampler::Tap, this);
 	registerEvent(button->LongPushButton, &Sampler::LongPush, this);
 	registerEvent(slider->updateSlider, &Sampler::updateVolume, this);
 
-	ASlider = new TableSlider(270.0f, 0.08f, false, 100.0f, 0.0, 0, 1.0f, 1.0f, false, true, false, "A");
+	ASlider = new TableSlider(270.0f, 0.09f, false, 100.0f, 0.0, 0, 1.0f, 1.0f, false, true, false, "A");
 	registerEvent(ASlider->updateSlider, &Sampler::updateAttack, this);
 	ASlider->setValue(0.0);
 
-	RSlider = new TableSlider(270.0f, 0.1f, false, 100.0f, 0.0, 0, 1.0f, 1.0f, false, true, false, "R");
+	RSlider = new TableSlider(270.0f, 0.11f, false, 100.0f, 0.0, 0, 1.0f, 1.0f, false, true, false, "R");
 	registerEvent(RSlider->updateSlider, &Sampler::updateRelease, this);
 	RSlider->setValue(100.0);
 
-	
+
 
 	loadImg(kickImg, "imgs/kick.png");
 	loadImg(clapImg, "imgs/clap.png");
@@ -524,10 +536,10 @@ Sampler::Sampler(int id) : Generator(id) {
 			sampler.addSample(sample);
 		}
 	}
-	
 
 
-	instrumentSlider = new TableSlider(90.0f, 0.06f, true, samples[KICK].size()-1, 0.0f, 0, 1, 1, true, true, true);
+
+	instrumentSlider = new TableSlider(90.0f, 0.06f, true, samples[KICK].size() - 1, 0.0f, 0, 1, 1, true, true, true);
 	registerEvent(instrumentSlider->updateSlider, &Sampler::instrumentSliderUpdate, this);
 	instrumentSlider->setValue(0.0f);
 
@@ -590,7 +602,7 @@ void Sampler::patch() {
 
 	attack_ctrl >> env.in_attack();
 	release_ctrl >> env.in_release();
-	
+
 	releaseMax >> env.in_release();
 
 	pitch_ctrl.enableSmoothing(100.0f);
@@ -728,7 +740,7 @@ Filter::Filter(int id) : Effect(id) {
 	button = new TableButton(180.0, 0.075);
 	registerEvent(button->TapButton, &Filter::Tap, this);
 
-	slider = new TableSlider(270.0f, 0.06f);
+	slider = new TableSlider(270.0f, 0.07f);
 	registerEvent(slider->updateSlider, &Filter::updateSlider, this);
 
 	info = new TableInfoCircle(150, 0.05, 150.0, true, false, 0, filterMaxValue, filterMinValue);
@@ -828,7 +840,7 @@ Delay::Delay(int id) : Effect(id) {
 	registerEvent(button->TapButton, &Delay::Tap, this);
 	registerEvent(button->LongPushButton, &Delay::LongPush, this);
 
-	slider = new TableSlider(270.0f, 0.06f);
+	slider = new TableSlider(270.0f, 0.07f);
 	registerEvent(slider->updateSlider, &Delay::updateSlider, this);
 	slider->setValue(50.0);
 
@@ -850,9 +862,9 @@ void Delay::patch() {
 
 	time_ctrl >> delay.in_time();
 	feedback_ctrl >> delay.in_feedback();
-	
+
 	time_ctrl >> reverb.in_time();
-	
+
 
 	feedback_ctrl.enableSmoothing(500.0f);
 	time_ctrl.enableSmoothing(200.0f);
@@ -943,15 +955,15 @@ Chorus::Chorus(int id) : Effect(id) {
 	button = new TableButton(180.0, 0.075);
 	registerEvent(button->TapButton, &Chorus::Tap, this);
 
-	slider = new TableSlider(270.0f, 0.06f);
+	slider = new TableSlider(270.0f, 0.07f);
 	registerEvent(slider->updateSlider, &Chorus::updateSlider, this);
 
-	speedSlider = new TableSlider(270.0f, 0.08f);
+	speedSlider = new TableSlider(270.0f, 0.09f);
 	registerEvent(speedSlider->updateSlider, &Chorus::updateSpeedSlider, this);
 	speed_ctrl.set(speedMaxValue / 2.0);
 	speedSlider->setValue(50);
 
-	delaySlider = new TableSlider(270.0f, 0.1f);
+	delaySlider = new TableSlider(270.0f, 0.11f);
 	registerEvent(delaySlider->updateSlider, &Chorus::updateDelaySlider, this);
 	delay_ctrl.set(delayMaxValue / 2.0);
 	delaySlider->setValue(50);
