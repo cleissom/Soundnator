@@ -2,7 +2,7 @@
 #include "SoundEngine.h"
 
 SoundDispatcher::SoundDispatcher() {
-	SoundEngine::I().getEngine().sequencer.init(3, 4, 120);
+	SoundEngine::I().getEngine().sequencer.init(4, 4, 120);
 
 	TableObjects.insert(std::make_pair(0,	new Oscillator(0)));
 	TableObjects.insert(std::make_pair(1,	new Oscillator(1)));
@@ -18,6 +18,7 @@ SoundDispatcher::SoundDispatcher() {
 	TableObjects.insert(std::make_pair(11,	new Delay(11)));
 	TableObjects.insert(std::make_pair(12,	new Chorus(12)));
 	TableObjects.insert(std::make_pair(13,	new Chorus(13)));
+	TableObjects.insert(std::make_pair(14,	new Sequencer(14,3)));
 
 	TableObjects.insert(std::make_pair(OUTPUT, new Output(OUTPUT)));
 
