@@ -179,6 +179,8 @@ void TableObject::remove() {
 		makeDisconnectionOut(precedingAudioObj);
 		makeDisconnectionOut(precedingControlObj);
 
+		followingObj->precedingAudioObj = nullptr;
+
 		precedingAudioObj->followingObj = nullptr;
 		precedingControlObj->followingObj = nullptr;
 
@@ -196,6 +198,9 @@ void TableObject::remove() {
 	else if (precedingControlObj && followingObj) {
 		makeDisconnectionOut(precedingControlObj);
 		makeDisconnectionIn(followingObj);
+
+		followingObj->precedingAudioObj = nullptr;
+
 		precedingControlObj->followingObj = nullptr;
 		precedingControlObj = nullptr;
 	}
@@ -204,7 +209,6 @@ void TableObject::remove() {
 	}
 
 	if (followingObj) {
-		
 		followingObj = nullptr;
 	}
 
