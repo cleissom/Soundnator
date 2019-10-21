@@ -379,7 +379,7 @@ void TableSequencerCells::updateCallback(TableCell::tapCellArgs & a) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TableSequencerSliders::TableSequencerSliders(float angle, float distanceOffset, int cellsNum, float openingAngle, float maxValue, float minValue, bool clockwise) : TableUIBase(angle, distanceOffset), cellsNum(cellsNum) {
+TableSequencerSliders::TableSequencerSliders(float angle, float distanceOffset, int cellsNum, float openingAngle, float maxValue, float minValue, bool clockwise, bool showTopText) : TableUIBase(angle, distanceOffset), cellsNum(cellsNum) {
 	int gaps = cellsNum - 1;
 	float totalCellOpeningAngle = openingAngle - float(gaps) * gapAngle;
 	float cellOpeningAngle = totalCellOpeningAngle / float(cellsNum);
@@ -393,7 +393,7 @@ TableSequencerSliders::TableSequencerSliders(float angle, float distanceOffset, 
 		else {
 			cellAngle = ofWrapDegrees(angle + ((float(i) * cellOpeningAngle) + (float(i) * gapAngle)));
 		}
-		sliders.push_back(new TableSlider(cellAngle, distanceOffset, true, maxValue, minValue, i, 0.6f, 1.0f, false, false, true));
+		sliders.push_back(new TableSlider(cellAngle, distanceOffset, true, maxValue, minValue, i, 0.6f, 1.0f, false, false, showTopText));
 	}
 
 	for (auto slider : sliders) {

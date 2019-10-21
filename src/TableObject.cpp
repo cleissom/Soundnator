@@ -1079,7 +1079,7 @@ Sequencer::Sequencer(int id, int sequencerSection, connectionType_t connection) 
 	tableSequencerCells = new TableSequencerCells(0.0f, 0.07f, beatsNum, 320.0f);
 	tableSequencerCells->updateSequencerCells(beats[actualSequence]);
 
-	tableSequencerPitch = new TableSequencerSliders(-10.0f, 0.1f, beatsNum, 320.0f, 12, -12);
+	tableSequencerPitch = new TableSequencerSliders(-10.0f, 0.1f, beatsNum, 320.0f, 12, -12, true, true);
 	tableSequencerPitch->updateSequencerSliders(pitches[actualSequence]);
 
 	tableSequencerVolume = new TableSequencerSliders(-10.0f, 0.1f, beatsNum, 320.0f);

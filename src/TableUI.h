@@ -208,7 +208,7 @@ public:
 
 	ofEvent<updateTableSequencerSlidersArgs> updateTableSequencerSliders;
 
-	TableSequencerSliders(float angle = 0.0f, float distanceOffset = 0.075f, int cellsNum = 5, float openingAngle = 180, float maxValue = 100.0f, float minValue = 0.0f, bool clockwise = true);
+	TableSequencerSliders(float angle = 0.0f, float distanceOffset = 0.075f, int cellsNum = 5, float openingAngle = 180, float maxValue = 100.0f, float minValue = 0.0f, bool clockwise = true, bool showTopText = false);
 	void updateTransformationMatrix();
 	void isHidden(bool is);
 	void updateSequencerSliders(vector<int>& vec);
