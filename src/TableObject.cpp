@@ -843,7 +843,7 @@ Delay::Delay(int id) : Effect(id) {
 
 void Delay::patch() {
 
-	input * dB(20.0f) >> reverb;
+	input * dB(6.0f) >> reverb;
 	input >> delay;
 
 	node >> amp >> output;
