@@ -1,0 +1,15 @@
+[Unit]
+Description=reacTIVision
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=pi
+WorkingDirectory=/home/pi/reacTIVision/linux/
+ExecStart=/home/pi/reacTIVision/linux/reacTIVision -n
+
+[Install]
+WantedBy=multi-user.target
+

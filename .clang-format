@@ -1,0 +1,23 @@
+# Use the Google style in this project.
+BasedOnStyle: Google
+
+# Allow double brackets such as std::vector<std::vector<int>>.
+Standard: Cpp11
+
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+
+# Keep lines under 120 columns long.
+ColumnLimit: 120
+
+BreakBeforeBraces: Attach
+
+# Force pointers to the type for C++.
+DerivePointerAlignment: false
+PointerAlignment: Right
+
+AlignEscapedNewlines: Right
+
+# Force not messing with comments that start with something other than a space
+CommentPragmas: "^[^ ]"

@@ -1,0 +1,14 @@
+[Unit]
+Description=Soundnator
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=pi
+Environment=DISPLAY=:0
+WorkingDirectory=/home/pi/openFrameworks/apps/Soundnator/
+ExecStart=/home/pi/openFrameworks/apps/Soundnator/bin/Soundnator
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<portvideo>
+    <camera driver="default" id="0">
+        <capture width="960" height="720" fps="15" format="yuv420p" force="true"/>
+        <settings brightness="30" contrast="-30" exposure="default" sharpness="-70" powerline="default"/>
+        <frame width="max" height="max" xoff="0" yoff="0"/>
+    </camera>
+</portvideo>
